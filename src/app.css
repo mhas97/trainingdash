@@ -1,0 +1,27 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 14px;
+}
+
+.broke-btn {
+  font-size: 20px;
+  color: #fff;
+  font-weight: 500;
+  background: none;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 6px 12px;
+  width: 100%;
+  letter-spacing: 0.04em;
+}
+
+.broke-btn:hover {
+  border-color: #555;
+  color: #aaa;
+}
