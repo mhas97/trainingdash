@@ -729,7 +729,13 @@
       </div>
       <div class="divider"></div>
       <div class="stat">
-        <div class="stat-value">{fmtTime(weekSecs)}</div>
+        <div class="stat-value">
+          {#if weekSecs > 0}
+            {@const h = Math.floor(weekSecs / 3600)}
+            {@const m = Math.floor((weekSecs % 3600) / 60)}
+            {#if h > 0}{h}<span class="stat-unit">h</span>{/if}<span class="stat-mins">{m}<span class="stat-unit">m</span></span>
+          {:else}—{/if}
+        </div>
         <div class="stat-label">active time</div>
       </div>
       <div class="divider"></div>
@@ -1004,7 +1010,7 @@
     position: fixed; inset: 0; z-index: 0;
     pointer-events: none;
   }
-  .matrix-active { background: transparent !important; }
+  .matrix-active { background: transparent !important; font-family: 'Courier New', Courier, monospace; }
   .matrix-active .card { background: rgba(5,15,6,0.75); backdrop-filter: blur(2px); }
   .vapor-active { background: transparent !important; font-family: 'Courier New', Courier, monospace; }
   .vapor-active .card { background: rgba(26,0,64,0.72); backdrop-filter: blur(6px); border: 1px solid rgba(255,45,120,0.2); }
@@ -1220,6 +1226,8 @@
     line-height: 1;
     margin-bottom: 4px;
   }
+  .stat-unit { font-size: 0.55em; font-weight: 400; opacity: 0.8; }
+  .stat-mins { font-size: 0.6em; font-weight: 400; }
   .stat-label {
     font-size: 11px;
     color: var(--tx2);
@@ -1515,7 +1523,8 @@
   @media (max-width: 600px) {
     .page { padding: 1rem; padding-bottom: max(1rem, calc(1rem + env(safe-area-inset-bottom))); }
     .header { flex-direction: column; }
-    .header-controls { width: 100%; justify-content: center; margin-bottom: 1rem; }
+    .header-controls { width: 100%; justify-content: center; margin-bottom: 1rem; flex-wrap: nowrap; gap: 4px; }
+    .header-controls .log-btn { padding: 4px 8px; font-size: 11px; }
     .form-row { grid-template-columns: 1fr; }
     .form-row label[style] { grid-column: 1 !important; }
     .import-menu { left: 0; right: auto; }
