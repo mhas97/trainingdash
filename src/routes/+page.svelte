@@ -8,6 +8,7 @@
     matrix: { bg: '#020d04', card: '#050f06', card2: '#081509', hover: '#0c1e0e', rb: '#0a1a0c', b1: '#0d2410', b2: '#102e13', b3: '#163d1a', track: '#1a5c1f', run: '#00ff41', gym: '#00cc33', cycle: '#00ff99', tx0: '#00ff41', tx1: '#00cc33', tx2: '#1a5c1f' },
     amber:  { bg: '#0f0d0a', card: '#171410', card2: '#1e1a14', hover: '#23201a', rb: '#201e18', b1: '#2a2218', b2: '#322a1e', b3: '#3d3226', track: '#4a4030', run: '#f59e0b', gym: '#f87171', cycle: '#a78bfa', tx0: '#ffffff', tx1: '#aaaaaa', tx2: '#666666' },
     mono:   { bg: '#0a0a0a', card: '#111111', card2: '#181818', hover: '#1e1e1e', rb: '#1a1a1a', b1: '#222222', b2: '#2a2a2a', b3: '#333333', track: '#444444', run: '#e5e5e5', gym: '#888888', cycle: '#cccccc', tx0: '#ffffff', tx1: '#aaaaaa', tx2: '#666666' },
+    vapor:  { bg: '#0d0021', card: '#1a0040', card2: '#220055', hover: '#2e0070', rb: '#2a005a', b1: '#2e005e', b2: '#380072', b3: '#450088', track: '#7700bb', run: '#ff2d78', gym: '#00f5ff', cycle: '#ffe600', tx0: '#ffffff', tx1: '#dd99ff', tx2: '#7744aa' },
   };
 
   let theme = $state(localStorage.getItem('theme') ?? 'dark');
@@ -57,6 +58,50 @@
     draw();
 
     return { destroy() { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); } };
+  }
+
+  function cloudFloat(canvas) {
+    let raf, W, H;
+    const clouds = Array.from({ length: 9 }, () => ({ x: 0, y: 0, scale: 1, speed: 0, opacity: 0 }));
+
+    function init() {
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+      clouds.forEach(c => {
+        c.x       = Math.random() * W;
+        c.y       = Math.random() * H * 0.85;
+        c.scale   = 0.6 + Math.random() * 1.8;
+        c.speed   = 0.15 + Math.random() * 0.25;
+        c.opacity = 0.06 + Math.random() * 0.1;
+      });
+    }
+
+    function drawCloud(ctx, x, y, s) {
+      ctx.beginPath();
+      ctx.arc(x,          y,          32 * s, 0, Math.PI * 2);
+      ctx.arc(x + 28 * s, y - 18 * s, 24 * s, 0, Math.PI * 2);
+      ctx.arc(x + 56 * s, y - 6  * s, 28 * s, 0, Math.PI * 2);
+      ctx.arc(x + 80 * s, y,          22 * s, 0, Math.PI * 2);
+      ctx.arc(x + 40 * s, y + 10 * s, 20 * s, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function draw() {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, W, H);
+      for (const c of clouds) {
+        ctx.fillStyle = `rgba(255,160,220,${c.opacity})`;
+        drawCloud(ctx, c.x, c.y, c.scale);
+        c.x -= c.speed;
+        if (c.x < -150 * c.scale) { c.x = W + 150 * c.scale; c.y = Math.random() * H * 0.85; }
+      }
+      raf = requestAnimationFrame(draw);
+    }
+
+    init();
+    window.addEventListener('resize', init);
+    draw();
+    return { destroy() { cancelAnimationFrame(raf); window.removeEventListener('resize', init); } };
   }
 
   const _stored = JSON.parse(localStorage.getItem('activities') ?? 'null');
@@ -560,11 +605,12 @@
 </script>
 
 {#if theme === 'matrix'}
-  <canvas class="matrix-canvas"
-    use:matrixRain
-  ></canvas>
+  <canvas class="matrix-canvas" use:matrixRain></canvas>
 {/if}
-<div class="page" class:matrix-active={theme === 'matrix'} style={themeStyle}>
+{#if theme === 'vapor'}
+  <canvas class="matrix-canvas" use:cloudFloat></canvas>
+{/if}
+<div class="page" class:matrix-active={theme === 'matrix'} class:vapor-active={theme === 'vapor'} style={themeStyle}>
   <div class="header">
     <div>
       <h1>run.dash</h1>
@@ -960,6 +1006,9 @@
   }
   .matrix-active { background: transparent !important; }
   .matrix-active .card { background: rgba(5,15,6,0.75); backdrop-filter: blur(2px); }
+  .vapor-active { background: transparent !important; font-family: 'Courier New', Courier, monospace; }
+  .vapor-active .card { background: rgba(26,0,64,0.72); backdrop-filter: blur(6px); border: 1px solid rgba(255,45,120,0.2); }
+  .vapor-active h1 { background: linear-gradient(90deg, #ff2d78, #00f5ff, #ffe600); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
   .page {
     position: relative; z-index: 1;
     background: var(--bg);
