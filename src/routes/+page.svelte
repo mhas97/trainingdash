@@ -242,9 +242,14 @@
     })
   );
 
+  let typeFilter = $state('run');
+  const TYPE_CYCLE = ['run', 'cycle', 'gym', 'all'];
+  function cycleType() { typeFilter = TYPE_CYCLE[(TYPE_CYCLE.indexOf(typeFilter) + 1) % TYPE_CYCLE.length]; }
+  let typeColor = $derived(typeFilter === 'cycle' ? T.cycle : typeFilter === 'gym' ? T.gym : typeFilter === 'all' ? T.tx1 : T.run);
+  let typeEmoji = $derived({ run: '👟', cycle: '🚴', gym: '🏋️', all: '∞' }[typeFilter]);
   let weekMiles = $derived(
     +thisWeekActivities
-      .filter(a => (a.type ?? 'run') === 'run')
+      .filter(a => (a.type ?? 'run') === (typeFilter === 'cycle' ? 'cycle' : 'run'))
       .reduce((s, a) => s + (a.distance || 0), 0)
       .toFixed(1)
   );
@@ -284,7 +289,7 @@
   }
 
   // ── Weekly chart ──────────────────────────────────────────
-  let chartView = $state('run');
+  let chartView = $derived(typeFilter === 'cycle' ? 'cycle' : 'run');
   let chartWeeks = $derived.by(() => {
     const weeks = [];
     for (let i = 11; i >= 0; i--) {
@@ -355,7 +360,6 @@
   }
 
   // ── Recent activity ───────────────────────────────────────
-  let filterType = $state('all');
   let pendingDelete = $state(null);
   let sortField = $state('date');
   let sortDir = $state('desc');
@@ -373,7 +377,7 @@
   }
 
   let recentActivities = $derived.by(() => {
-    const filtered = filterType === 'all' ? [...activities] : activities.filter(a => (a.type ?? 'run') === filterType);
+    const filtered = typeFilter === 'all' ? [...activities] : activities.filter(a => (a.type ?? 'run') === typeFilter);
     return filtered.sort((a, b) => {
       const av = sortVal(a, sortField), bv = sortVal(b, sortField);
       if (av === null && bv === null) return 0;
@@ -557,7 +561,7 @@
 
   // ── Annual totals ─────────────────────────────────────────
   const currentYear = today.getFullYear();
-  let annualView = $state('run');
+  let annualView = $derived(typeFilter === 'cycle' ? 'cycle' : 'run');
 
   let yearTypedActivities = $derived(
     activities.filter(a => a.date.startsWith(String(currentYear)) && (a.type ?? 'run') === annualView)
@@ -628,29 +632,14 @@
 <div class="page" class:matrix-active={theme === 'matrix'} class:vapor-active={theme === 'vapor'} style={themeStyle}>
   <div class="header">
     <div>
-      <h1>run.dash</h1>
+      <h1>{#key typeFilter}<span class="title-sport type-anim-{typeFilter}" style="color: {typeColor}; --glow: {typeColor}">{typeFilter}</span>{/key}.dash</h1>
       <p class="subtitle">activity log</p>
     </div>
     <div class="header-controls">
-      {#if showThemeMenu}
-        <button class="import-overlay" onclick={() => showThemeMenu = false} aria-label="close theme menu"></button>
-      {/if}
-      <div class="import-wrap">
-        <button class="log-btn" onclick={() => showThemeMenu = !showThemeMenu}>🎨</button>
-        {#if showThemeMenu}
-          <div class="import-menu">
-            {#each Object.entries(THEMES) as [key, t]}
-              <button
-                class="theme-option"
-                class:active={theme === key}
-                onclick={() => { theme = key; showThemeMenu = false; }}
-              >
-                <span class="theme-dot" style="--swatch:{t.run}"></span>
-                {key}
-              </button>
-            {/each}
-          </div>
-        {/if}
+      <div class="type-filter">
+        {#key typeFilter}
+          <button class="log-btn type-btn type-anim-{typeFilter}" style="border-color: {typeColor}; color: {typeFilter === 'all' ? typeColor : 'inherit'}; --glow: {typeColor}" onclick={cycleType} aria-label="cycle activity type">{typeEmoji}</button>
+        {/key}
       </div>
       <button class="log-btn" onclick={() => unit = unit === 'km' ? 'mi' : 'km'}>{unit}</button>
       <button class="log-btn example-btn" class:active={showExample} onclick={toggleExample}>example</button>
@@ -671,6 +660,26 @@
       <button class="log-btn" onclick={() => (showForm = !showForm)}>
         {showForm ? 'cancel' : '+ log'}
       </button>
+      {#if showThemeMenu}
+        <button class="import-overlay" onclick={() => showThemeMenu = false} aria-label="close theme menu"></button>
+      {/if}
+      <div class="import-wrap theme-wrap">
+        <button class="log-btn" onclick={() => showThemeMenu = !showThemeMenu}>🎨</button>
+        {#if showThemeMenu}
+          <div class="import-menu" style="right: 0; left: auto">
+            {#each Object.entries(THEMES) as [key, t]}
+              <button
+                class="theme-option"
+                class:active={theme === key}
+                onclick={() => { theme = key; showThemeMenu = false; }}
+              >
+                <span class="theme-dot" style="--swatch:{t.run}"></span>
+                {key}
+              </button>
+            {/each}
+          </div>
+        {/if}
+      </div>
     </div>
   </div>
 
@@ -740,15 +749,13 @@
     <div class="stats-items">
       <div class="stat">
         <div class="stat-value">{(weekMiles * kmFactor).toFixed(1)}</div>
-        <div class="stat-label">{unit} running</div>
+        <div class="stat-label">{unit} {typeFilter === 'cycle' ? 'cycling' : 'running'}</div>
       </div>
       <div class="divider"></div>
       <div class="stat">
         <div class="stat-value">
           {#if weekSecs > 0}
-            {@const h = Math.floor(weekSecs / 3600)}
-            {@const m = Math.floor((weekSecs % 3600) / 60)}
-            {#if h > 0}{h}<span class="stat-unit">h</span>{/if}<span class="stat-mins">{m}<span class="stat-unit">m</span></span>
+            {Math.round(weekSecs / 3600)}<span class="stat-unit">h</span>
           {:else}—{/if}
         </div>
         <div class="stat-label">active time</div>
@@ -765,13 +772,7 @@
   <div class="card">
     <div class="card-header">
       <span class="card-label">weekly {chartView === 'run' ? 'running' : 'cycling'} distance</span>
-      <div style="display:flex;align-items:center;gap:10px">
-        {#if chartWeeks.at(-1)?.miles > 0}<span class="card-value">{(chartWeeks.at(-1).miles * kmFactor).toFixed(1)} {unit} this week</span>{/if}
-        <div class="annual-toggle">
-          <button class:active={chartView === 'run'} style={chartView === 'run' ? `--tab-color: ${ACTIVITY_COLORS.run}` : ''} onclick={() => chartView = 'run'}>run</button>
-          <button class:active={chartView === 'cycle'} style={chartView === 'cycle' ? `--tab-color: ${ACTIVITY_COLORS.cycle}` : ''} onclick={() => chartView = 'cycle'}>cycle</button>
-        </div>
-      </div>
+      {#if chartWeeks.at(-1)?.miles > 0}<span class="card-value">{(chartWeeks.at(-1).miles * kmFactor).toFixed(1)} {unit} this week</span>{/if}
     </div>
     <div class="chart-container" bind:clientWidth={chartWidth}>
       <svg
@@ -830,10 +831,6 @@
   <div class="card">
     <div class="annual-header">
       <span class="card-label" style="margin-bottom: 0">{currentYear} totals</span>
-      <div class="annual-toggle">
-        <button class:active={annualView === 'run'} style={annualView === 'run' ? `--tab-color: ${ACTIVITY_COLORS.run}` : ''} onclick={() => annualView = 'run'}>run</button>
-        <button class:active={annualView === 'cycle'} style={annualView === 'cycle' ? `--tab-color: ${ACTIVITY_COLORS.cycle}` : ''} onclick={() => annualView = 'cycle'}>cycle</button>
-      </div>
     </div>
     <div class="annual-grid" style="--av:{ACTIVITY_COLORS[annualView]}">
       <div class="annual-stat">
@@ -845,15 +842,13 @@
         <div class="annual-lbl">longest {annualView === 'run' ? 'run' : 'ride'} ({unit})</div>
       </div>
       <div class="annual-stat">
-        <div class="annual-val">↑{fmtK(yearElev)}</div>
+        <div class="annual-val">↑ {fmtK(unit === 'km' ? yearElev : yearElev * 3.28084)}</div>
         <div class="annual-lbl">{unit === 'km' ? 'm' : 'ft'} elevation</div>
       </div>
       <div class="annual-stat">
         <div class="annual-val">
           {#if yearTotalSecs > 0}
-            {@const h = Math.floor(yearTotalSecs / 3600)}
-            {@const m = Math.floor((yearTotalSecs % 3600) / 60)}
-            {#if h > 0}{h}<span class="stat-unit">h</span>{/if}<span class="stat-mins">{m}<span class="stat-unit">m</span></span>
+            {Math.round(yearTotalSecs / 3600)}<span class="stat-unit">h</span>
           {:else}—{/if}
         </div>
         <div class="annual-lbl">active time</div>
@@ -879,20 +874,10 @@
   </div>
 
   <!-- Recent activity -->
-  {#if recentActivities.length > 0 || filterType !== 'all'}
+  {#if recentActivities.length > 0 || typeFilter !== 'all'}
   <div class="card">
     <div class="list-header">
       <span class="card-label" style="margin-bottom: 0">activity</span>
-      <div class="filter-tabs">
-        <button class:active={filterType === 'all'} onclick={() => filterType = 'all'}>all</button>
-        {#each ['run', 'cycle', 'gym'] as t}
-          <button
-            class:active={filterType === t}
-            style={filterType === t ? `--tab-color: ${ACTIVITY_COLORS[t]}` : ''}
-            onclick={() => filterType = t}
-          >{t}</button>
-        {/each}
-      </div>
     </div>
     <div class="runs-list">
       <div class="runs-inner">
@@ -931,7 +916,7 @@
               {activity.heartrate ? `${activity.heartrate} bpm` : '—'}
             </div>
             <div class="run-elev">
-              {activity.elevation != null ? `↑ ${activity.elevation}${unit === 'km' ? 'm' : 'ft'}` : '—'}
+              {activity.elevation != null ? `↑ ${Math.round(unit === 'km' ? activity.elevation : activity.elevation * 3.28084)}${unit === 'km' ? 'm' : 'ft'}` : '—'}
             </div>
             <div class="run-notes">{activity.notes || '—'}</div>
             <button
@@ -1054,6 +1039,7 @@
     color: var(--tx0);
     margin-bottom: 4px;
   }
+  .title-sport { display: inline-block; }
 
   .subtitle {
     font-size: 15px;
@@ -1114,6 +1100,9 @@
     padding: 7px 14px;
     cursor: pointer;
     letter-spacing: 0.04em;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
   }
   .log-btn:hover { border-color: var(--tx2); }
   .example-btn.active { border-color: var(--c-run); color: var(--c-run); }
@@ -1250,7 +1239,6 @@
     margin-bottom: 4px;
   }
   .stat-unit { font-size: 0.55em; font-weight: 400; opacity: 0.8; }
-  .stat-mins { font-size: 0.6em; font-weight: 400; }
   .stat-label {
     font-size: 11px;
     color: var(--tx2);
@@ -1373,22 +1361,35 @@
     justify-content: space-between;
     margin-bottom: 14px;
   }
-  .filter-tabs { display: flex; gap: 2px; }
-  .filter-tabs button {
-    background: none;
-    border: 1px solid var(--b2);
-    border-radius: 4px;
-    color: var(--tx2);
-    font-size: 11px;
-    padding: 3px 8px;
-    cursor: pointer;
-    font-family: inherit;
-    letter-spacing: 0.04em;
+  .type-filter { display: flex; gap: 2px; }
+  .type-btn { opacity: 0.6; transition: opacity 0.15s; }
+  .type-btn:hover { opacity: 0.85; }
+  @keyframes anim-run {
+    0%   { transform: translateX(-24px); opacity: 0; box-shadow: none; }
+    65%  { transform: translateX(4px);   opacity: 1; box-shadow: 0 0 14px 4px var(--glow); }
+    100% { transform: translateX(0);     opacity: 0.6; box-shadow: none; }
   }
-  .filter-tabs button.active {
-    border-color: var(--tab-color, var(--tx2));
-    color: var(--tab-color, var(--tx0));
+  @keyframes anim-cycle {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
+  @keyframes anim-gym {
+    0%   { transform: translateY(0); }
+    25%  { transform: translateY(-10px); }
+    50%  { transform: translateY(0); }
+    70%  { transform: translateY(-5px); }
+    100% { transform: translateY(0); }
+  }
+  @keyframes anim-all {
+    0%   { transform: scale(0.3); opacity: 0; }
+    65%  { transform: scale(1.18); opacity: 0.9; }
+    100% { transform: scale(1);   opacity: 0.6; }
+  }
+  .type-anim-run   { animation: anim-run   0.45s ease-out; }
+  .type-anim-cycle { animation: anim-cycle 0.5s ease-in-out; }
+  .type-anim-gym   { animation: anim-gym   0.55s ease-in-out; }
+  .type-anim-all   { animation: anim-all   0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  .theme-wrap { margin-left: auto; }
   .runs-list { display: flex; flex-direction: column; }
   .runs-inner { display: flex; flex-direction: column; }
   .runs-scroll {
@@ -1469,23 +1470,7 @@
     justify-content: space-between;
     margin-bottom: 14px;
   }
-  .annual-toggle {
-    display: flex;
-    border: 1px solid var(--b2);
-    border-radius: 6px;
-    overflow: hidden;
-  }
-  .annual-toggle button {
-    background: none;
-    border: none;
-    color: var(--tx2);
-    font-size: 11px;
-    padding: 4px 10px;
-    cursor: pointer;
-    font-family: inherit;
-    letter-spacing: 0.04em;
-  }
-  .annual-toggle button.active { background: var(--hover); color: var(--tab-color, var(--tx0)); }
+
   .annual-grid { display: flex; margin-bottom: 14px; }
   .annual-stat {
     flex: 1;
@@ -1548,6 +1533,7 @@
     .header { flex-direction: column; }
     .header-controls { width: 100%; justify-content: center; margin-bottom: 1rem; flex-wrap: nowrap; gap: 4px; }
     .header-controls .log-btn { padding: 4px 8px; font-size: 11px; }
+    .theme-wrap { margin-left: 0; }
     .form-row { grid-template-columns: 1fr; }
     .form-row label[style] { grid-column: 1 !important; }
     .import-menu { left: 0; right: auto; }
