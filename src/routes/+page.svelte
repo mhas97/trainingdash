@@ -1241,7 +1241,7 @@
   @media (max-width: 600px) {
     .page { padding: 1rem; }
     .header { flex-direction: column; }
-    .header-controls { width: 100%; justify-content: center; }
+    .header-controls { width: 100%; justify-content: center; margin-bottom: 1rem; }
     .form-row { grid-template-columns: 1fr; }
     .form-row label[style] { grid-column: 1 !important; }
     .runs-list { overflow-x: auto; }
