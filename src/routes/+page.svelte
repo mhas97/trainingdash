@@ -34,6 +34,18 @@
   let showForm = $state(false);
   let pendingTrack = $state(null);
   let mapActivityId = $state(null);
+  let mapPos = $state(null);
+
+  function toggleMap(e, activity) {
+    if (!activity.track) return;
+    if (mapActivityId === activity.id) { mapActivityId = null; mapPos = null; return; }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const popH = 176;
+    const top = rect.top > popH + 12 ? rect.top - popH - 8 : rect.bottom + 8;
+    const left = Math.min(Math.max(8, rect.left), window.innerWidth - 296);
+    mapActivityId = activity.id;
+    mapPos = { top, left };
+  }
   let form = $state({
     type: 'run',
     date: new Date().toISOString().split('T')[0],
@@ -776,7 +788,10 @@
       <div class="runs-scroll">
         {#each recentActivities as activity}
           {@const color = ACTIVITY_COLORS[activity.type ?? 'run']}
-          <div class="run-row">
+          <div class="run-row" class:run-row-mapped={!!activity.track}
+            role={activity.track ? 'button' : undefined}
+            onclick={activity.track ? (e) => toggleMap(e, activity) : null}
+            onkeydown={activity.track ? (e) => e.key === 'Enter' && toggleMap(e, activity) : null}>
             <div class="run-date">{fmtDate(activity.date)}</div>
             <div class="run-type" style="color: {color}">{activity.type ?? 'run'}</div>
             <div class="run-dist">
@@ -798,17 +813,10 @@
               {activity.elevation != null ? `↑${activity.elevation}${unit === 'km' ? 'm' : 'ft'}` : '—'}
             </div>
             <div class="run-notes">{activity.notes || '—'}</div>
-            {#if activity.track}
-              <button class="map-btn" class:map-btn-active={mapActivityId === activity.id}
-                aria-label="Show route"
-                onclick={() => mapActivityId = mapActivityId === activity.id ? null : activity.id}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              </button>
-            {/if}
             <button
               class="del-btn"
               class:del-armed={pendingDelete === activity.id}
-              onclick={() => {
+              onclick={(e) => { e.stopPropagation();
                 if (pendingDelete === activity.id) {
                   deleteActivity(activity.id);
                   pendingDelete = null;
@@ -823,25 +831,6 @@
       </div>
       </div>
     </div>
-    {#if mapActivityId}
-      {@const act = recentActivities.find(a => a.id === mapActivityId)}
-      {#if act?.track}
-        {@const W = 280}
-        {@const H = 160}
-        {@const pad = 12}
-        {@const pts = routePolyline(act.track, W, H, pad)}
-        {@const ep = routeEndpoints(act.track, W, H, pad)}
-        {@const col = ACTIVITY_COLORS[act.type ?? 'run']}
-        <div class="route-map-wrap">
-          <svg viewBox="0 0 {W} {H}" width="100%" style="display:block">
-            <rect width={W} height={H} rx="8" fill="var(--card2)" />
-            <polyline points={pts} fill="none" stroke={col} stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.85" />
-            <circle cx={ep.sx} cy={ep.sy} r="5" fill={col} opacity="0.5" />
-            <circle cx={ep.ex} cy={ep.ey} r="5" fill={col} />
-          </svg>
-        </div>
-      {/if}
-    {/if}
   </div>
   {/if}
 
@@ -896,6 +885,27 @@
     </div>
   </div>
 </div>
+
+{#if mapActivityId && mapPos}
+  {@const act = activities.find(a => a.id === mapActivityId)}
+  {#if act?.track}
+    {@const W = 280}
+    {@const H = 160}
+    {@const pad = 12}
+    {@const pts = routePolyline(act.track, W, H, pad)}
+    {@const ep = routeEndpoints(act.track, W, H, pad)}
+    {@const col = ACTIVITY_COLORS[act.type ?? 'run']}
+    <button class="map-backdrop" aria-label="Close map" onclick={() => { mapActivityId = null; mapPos = null; }}></button>
+    <div class="map-popout" style="top:{mapPos.top}px;left:{mapPos.left}px">
+      <svg viewBox="0 0 {W} {H}" width={W} height={H} style="display:block">
+        <rect width={W} height={H} rx="10" fill="var(--card2)" />
+        <polyline points={pts} fill="none" stroke={col} stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.85" />
+        <circle cx={ep.sx} cy={ep.sy} r="5" fill={col} opacity="0.4" />
+        <circle cx={ep.ex} cy={ep.ey} r="5" fill={col} />
+      </svg>
+    </div>
+  {/if}
+{/if}
 
 <style>
   .page {
@@ -1272,9 +1282,15 @@
   .sort-btn.sort-active { color: var(--tx0); }
   .sort-arrow { font-size: 9px; opacity: 0.8; }
   .sort-arrow-dim { opacity: 0.25; }
-  .map-btn { background: none; border: none; padding: 2px; color: var(--tx2); cursor: pointer; opacity: 0.4; flex-shrink: 0; }
-  .map-btn:hover, .map-btn.map-btn-active { opacity: 1; color: var(--tx0); }
-  .route-map-wrap { margin-top: 12px; border-radius: 8px; overflow: hidden; max-width: 280px; }
+  .run-row-mapped { cursor: pointer; }
+  .map-backdrop { position: fixed; inset: 0; z-index: 40; background: transparent; border: none; padding: 0; cursor: default; }
+  .map-popout {
+    position: fixed; z-index: 50;
+    border-radius: 10px; overflow: hidden;
+    box-shadow: 0 4px 32px color-mix(in srgb, var(--bg) 40%, #000);
+    border: 1px solid var(--b2);
+    pointer-events: none;
+  }
   .run-row {
     display: flex;
     align-items: center;
