@@ -2,66 +2,66 @@
   const ACTIVITY_COLORS = { run: '#ff6b35', gym: '#b44fff', cycle: '#00e5ff' };
 
   const TEST_ACTIVITIES = [
-    { id: '1',  type: 'run',   date: '2026-02-18', distance: 3.2,  duration: '30:05', notes: 'shaking off the rust' },
-    { id: '2',  type: 'run',   date: '2026-02-20', distance: 4.8,  duration: '46:10', notes: '' },
-    { id: '37', type: 'gym',   date: '2026-02-21', distance: null, duration: '55:00', notes: 'upper body' },
-    { id: '3',  type: 'run',   date: '2026-02-25', distance: 3.5,  duration: '33:20', notes: 'windy' },
-    { id: '38', type: 'cycle', date: '2026-02-26', distance: 10.2, duration: '38:10', notes: 'canal path' },
-    { id: '4',  type: 'run',   date: '2026-02-27', distance: 6.5,  duration: '1:02:40', notes: 'first long run in a while' },
-    { id: '39', type: 'gym',   date: '2026-03-02', distance: null, duration: '50:00', notes: '' },
-    { id: '5',  type: 'run',   date: '2026-03-04', distance: 4.1,  duration: '39:15', notes: '' },
-    { id: '6',  type: 'run',   date: '2026-03-06', distance: 3.2,  duration: '30:50', notes: 'recovery' },
-    { id: '40', type: 'cycle', date: '2026-03-07', distance: 14.8, duration: '52:30', notes: 'morning ride' },
-    { id: '7',  type: 'run',   date: '2026-03-08', distance: 3.8,  duration: '36:20', notes: '' },
-    { id: '41', type: 'gym',   date: '2026-03-09', distance: null, duration: '45:00', notes: 'legs' },
-    { id: '8',  type: 'run',   date: '2026-03-11', distance: 4.5,  duration: '43:00', notes: '' },
-    { id: '9',  type: 'run',   date: '2026-03-13', distance: 3.8,  duration: '36:45', notes: 'rainy' },
-    { id: '42', type: 'gym',   date: '2026-03-14', distance: null, duration: '1:00:00', notes: 'push day' },
-    { id: '10', type: 'run',   date: '2026-03-15', distance: 4.7,  duration: '45:10', notes: 'felt good' },
-    { id: '43', type: 'cycle', date: '2026-03-16', distance: 18.5, duration: '1:05:20', notes: '' },
-    { id: '11', type: 'run',   date: '2026-03-18', distance: 4.2,  duration: '40:30', notes: '' },
-    { id: '12', type: 'run',   date: '2026-03-20', distance: 4.8,  duration: '46:00', notes: 'tempo effort' },
-    { id: '44', type: 'gym',   date: '2026-03-21', distance: null, duration: '52:00', notes: '' },
-    { id: '13', type: 'run',   date: '2026-03-22', distance: 6.0,  duration: '58:30', notes: 'long run' },
-    { id: '14', type: 'run',   date: '2026-03-25', distance: 3.5,  duration: '33:45', notes: 'cutback week' },
-    { id: '45', type: 'gym',   date: '2026-03-27', distance: null, duration: '48:00', notes: 'pull day' },
-    { id: '15', type: 'run',   date: '2026-03-28', distance: 4.2,  duration: '40:15', notes: '' },
-    { id: '16', type: 'run',   date: '2026-03-29', distance: 4.3,  duration: '41:20', notes: '' },
-    { id: '17', type: 'run',   date: '2026-04-01', distance: 4.5,  duration: '43:10', notes: '' },
-    { id: '46', type: 'gym',   date: '2026-04-02', distance: null, duration: '55:00', notes: '' },
-    { id: '18', type: 'run',   date: '2026-04-03', distance: 5.2,  duration: '50:05', notes: 'negative split' },
-    { id: '47', type: 'cycle', date: '2026-04-04', distance: 22.1, duration: '1:18:00', notes: 'long ride' },
-    { id: '19', type: 'run',   date: '2026-04-05', distance: 7.3,  duration: '1:11:30', notes: 'new longest run' },
-    { id: '20', type: 'run',   date: '2026-04-08', distance: 4.8,  duration: '46:20', notes: '' },
-    { id: '48', type: 'gym',   date: '2026-04-08', distance: null, duration: '50:00', notes: 'double day' },
-    { id: '21', type: 'run',   date: '2026-04-10', distance: 5.5,  duration: '53:00', notes: 'track workout' },
-    { id: '49', type: 'gym',   date: '2026-04-11', distance: null, duration: '45:00', notes: '' },
-    { id: '22', type: 'run',   date: '2026-04-12', distance: 8.7,  duration: '1:24:45', notes: 'crushed it' },
-    { id: '50', type: 'cycle', date: '2026-04-13', distance: 16.3, duration: '58:40', notes: '' },
-    { id: '23', type: 'run',   date: '2026-04-15', distance: 5.0,  duration: '48:10', notes: '' },
-    { id: '51', type: 'gym',   date: '2026-04-16', distance: null, duration: '1:00:00', notes: 'legs' },
-    { id: '24', type: 'run',   date: '2026-04-17', distance: 6.2,  duration: '1:00:20', notes: 'first sub-hour 10k pace' },
-    { id: '52', type: 'cycle', date: '2026-04-18', distance: 19.8, duration: '1:10:00', notes: 'hilly route' },
-    { id: '25', type: 'run',   date: '2026-04-19', distance: 4.8,  duration: '46:30', notes: '' },
-    { id: '26', type: 'run',   date: '2026-04-20', distance: 5.0,  duration: '48:00', notes: 'back to back' },
-    { id: '53', type: 'gym',   date: '2026-04-21', distance: null, duration: '55:00', notes: 'cutback week' },
-    { id: '27', type: 'run',   date: '2026-04-22', distance: 4.0,  duration: '38:45', notes: 'cutback week' },
-    { id: '54', type: 'gym',   date: '2026-04-23', distance: null, duration: '48:00', notes: '' },
-    { id: '28', type: 'run',   date: '2026-04-24', distance: 5.0,  duration: '48:20', notes: '' },
-    { id: '55', type: 'cycle', date: '2026-04-25', distance: 25.4, duration: '1:28:00', notes: 'longest ride' },
-    { id: '29', type: 'run',   date: '2026-04-27', distance: 7.0,  duration: '1:08:10', notes: 'long run' },
-    { id: '56', type: 'gym',   date: '2026-04-28', distance: null, duration: '52:00', notes: '' },
-    { id: '30', type: 'run',   date: '2026-04-29', distance: 5.5,  duration: '53:15', notes: '' },
-    { id: '57', type: 'cycle', date: '2026-04-30', distance: 13.6, duration: '48:30', notes: 'recovery spin' },
-    { id: '31', type: 'run',   date: '2026-05-01', distance: 6.0,  duration: '58:00', notes: 'May kicks off strong' },
-    { id: '32', type: 'run',   date: '2026-05-02', distance: 4.3,  duration: '41:30', notes: 'double day' },
-    { id: '58', type: 'gym',   date: '2026-05-03', distance: null, duration: '1:00:00', notes: 'push day' },
-    { id: '33', type: 'run',   date: '2026-05-04', distance: 7.2,  duration: '1:10:20', notes: 'big effort' },
-    { id: '34', type: 'run',   date: '2026-05-05', distance: 4.1,  duration: '39:30', notes: 'recovery' },
-    { id: '59', type: 'gym',   date: '2026-05-06', distance: null, duration: '50:00', notes: '' },
-    { id: '35', type: 'run',   date: '2026-05-07', distance: 5.3,  duration: '51:10', notes: 'tempo' },
-    { id: '60', type: 'cycle', date: '2026-05-07', distance: 11.2, duration: '40:00', notes: 'evening ride' },
-    { id: '36', type: 'run',   date: '2026-05-08', distance: 4.5,  duration: '43:20', notes: 'feeling fit' },
+    { id: '1',  type: 'run',   date: '2026-02-18', distance: 3.2,  duration: '30:05', elevation:  42, heartrate: 145, notes: 'shaking off the rust' },
+    { id: '2',  type: 'run',   date: '2026-02-20', distance: 4.8,  duration: '46:10', elevation:  58, heartrate: 150, notes: '' },
+    { id: '37', type: 'gym',   date: '2026-02-21', distance: null, duration: '55:00', elevation: null, heartrate: 128, notes: 'upper body' },
+    { id: '3',  type: 'run',   date: '2026-02-25', distance: 3.5,  duration: '33:20', elevation:  35, heartrate: 148, notes: 'windy' },
+    { id: '38', type: 'cycle', date: '2026-02-26', distance: 10.2, duration: '38:10', elevation:  78, heartrate: 138, notes: 'canal path' },
+    { id: '4',  type: 'run',   date: '2026-02-27', distance: 6.5,  duration: '1:02:40', elevation: 82, heartrate: 153, notes: 'first long run in a while' },
+    { id: '39', type: 'gym',   date: '2026-03-02', distance: null, duration: '50:00', elevation: null, heartrate: 126, notes: '' },
+    { id: '5',  type: 'run',   date: '2026-03-04', distance: 4.1,  duration: '39:15', elevation:  50, heartrate: 149, notes: '' },
+    { id: '6',  type: 'run',   date: '2026-03-06', distance: 3.2,  duration: '30:50', elevation:  28, heartrate: 135, notes: 'recovery' },
+    { id: '40', type: 'cycle', date: '2026-03-07', distance: 14.8, duration: '52:30', elevation: 118, heartrate: 142, notes: 'morning ride' },
+    { id: '7',  type: 'run',   date: '2026-03-08', distance: 3.8,  duration: '36:20', elevation:  44, heartrate: 147, notes: '' },
+    { id: '41', type: 'gym',   date: '2026-03-09', distance: null, duration: '45:00', elevation: null, heartrate: 136, notes: 'legs' },
+    { id: '8',  type: 'run',   date: '2026-03-11', distance: 4.5,  duration: '43:00', elevation:  55, heartrate: 151, notes: '' },
+    { id: '9',  type: 'run',   date: '2026-03-13', distance: 3.8,  duration: '36:45', elevation:  40, heartrate: 148, notes: 'rainy' },
+    { id: '42', type: 'gym',   date: '2026-03-14', distance: null, duration: '1:00:00', elevation: null, heartrate: 132, notes: 'push day' },
+    { id: '10', type: 'run',   date: '2026-03-15', distance: 4.7,  duration: '45:10', elevation:  64, heartrate: 155, notes: 'felt good' },
+    { id: '43', type: 'cycle', date: '2026-03-16', distance: 18.5, duration: '1:05:20', elevation: 176, heartrate: 145, notes: '' },
+    { id: '11', type: 'run',   date: '2026-03-18', distance: 4.2,  duration: '40:30', elevation:  52, heartrate: 150, notes: '' },
+    { id: '12', type: 'run',   date: '2026-03-20', distance: 4.8,  duration: '46:00', elevation:  60, heartrate: 162, notes: 'tempo effort' },
+    { id: '44', type: 'gym',   date: '2026-03-21', distance: null, duration: '52:00', elevation: null, heartrate: 130, notes: '' },
+    { id: '13', type: 'run',   date: '2026-03-22', distance: 6.0,  duration: '58:30', elevation:  88, heartrate: 153, notes: 'long run' },
+    { id: '14', type: 'run',   date: '2026-03-25', distance: 3.5,  duration: '33:45', elevation:  33, heartrate: 140, notes: 'cutback week' },
+    { id: '45', type: 'gym',   date: '2026-03-27', distance: null, duration: '48:00', elevation: null, heartrate: 127, notes: 'pull day' },
+    { id: '15', type: 'run',   date: '2026-03-28', distance: 4.2,  duration: '40:15', elevation:  48, heartrate: 149, notes: '' },
+    { id: '16', type: 'run',   date: '2026-03-29', distance: 4.3,  duration: '41:20', elevation:  53, heartrate: 151, notes: '' },
+    { id: '17', type: 'run',   date: '2026-04-01', distance: 4.5,  duration: '43:10', elevation:  58, heartrate: 152, notes: '' },
+    { id: '46', type: 'gym',   date: '2026-04-02', distance: null, duration: '55:00', elevation: null, heartrate: 133, notes: '' },
+    { id: '18', type: 'run',   date: '2026-04-03', distance: 5.2,  duration: '50:05', elevation:  68, heartrate: 158, notes: 'negative split' },
+    { id: '47', type: 'cycle', date: '2026-04-04', distance: 22.1, duration: '1:18:00', elevation: 248, heartrate: 148, notes: 'long ride' },
+    { id: '19', type: 'run',   date: '2026-04-05', distance: 7.3,  duration: '1:11:30', elevation: 104, heartrate: 156, notes: 'new longest run' },
+    { id: '20', type: 'run',   date: '2026-04-08', distance: 4.8,  duration: '46:20', elevation:  63, heartrate: 152, notes: '' },
+    { id: '48', type: 'gym',   date: '2026-04-08', distance: null, duration: '50:00', elevation: null, heartrate: 131, notes: 'double day' },
+    { id: '21', type: 'run',   date: '2026-04-10', distance: 5.5,  duration: '53:00', elevation:  18, heartrate: 168, notes: 'track workout' },
+    { id: '49', type: 'gym',   date: '2026-04-11', distance: null, duration: '45:00', elevation: null, heartrate: 129, notes: '' },
+    { id: '22', type: 'run',   date: '2026-04-12', distance: 8.7,  duration: '1:24:45', elevation: 128, heartrate: 160, notes: 'crushed it' },
+    { id: '50', type: 'cycle', date: '2026-04-13', distance: 16.3, duration: '58:40', elevation: 152, heartrate: 143, notes: '' },
+    { id: '23', type: 'run',   date: '2026-04-15', distance: 5.0,  duration: '48:10', elevation:  68, heartrate: 153, notes: '' },
+    { id: '51', type: 'gym',   date: '2026-04-16', distance: null, duration: '1:00:00', elevation: null, heartrate: 138, notes: 'legs' },
+    { id: '24', type: 'run',   date: '2026-04-17', distance: 6.2,  duration: '1:00:20', elevation:  84, heartrate: 163, notes: 'first sub-hour 10k pace' },
+    { id: '52', type: 'cycle', date: '2026-04-18', distance: 19.8, duration: '1:10:00', elevation: 318, heartrate: 150, notes: 'hilly route' },
+    { id: '25', type: 'run',   date: '2026-04-19', distance: 4.8,  duration: '46:30', elevation:  60, heartrate: 151, notes: '' },
+    { id: '26', type: 'run',   date: '2026-04-20', distance: 5.0,  duration: '48:00', elevation:  64, heartrate: 154, notes: 'back to back' },
+    { id: '53', type: 'gym',   date: '2026-04-21', distance: null, duration: '55:00', elevation: null, heartrate: 127, notes: 'cutback week' },
+    { id: '27', type: 'run',   date: '2026-04-22', distance: 4.0,  duration: '38:45', elevation:  38, heartrate: 142, notes: 'cutback week' },
+    { id: '54', type: 'gym',   date: '2026-04-23', distance: null, duration: '48:00', elevation: null, heartrate: 130, notes: '' },
+    { id: '28', type: 'run',   date: '2026-04-24', distance: 5.0,  duration: '48:20', elevation:  65, heartrate: 153, notes: '' },
+    { id: '55', type: 'cycle', date: '2026-04-25', distance: 25.4, duration: '1:28:00', elevation: 276, heartrate: 152, notes: 'longest ride' },
+    { id: '29', type: 'run',   date: '2026-04-27', distance: 7.0,  duration: '1:08:10', elevation:  98, heartrate: 155, notes: 'long run' },
+    { id: '56', type: 'gym',   date: '2026-04-28', distance: null, duration: '52:00', elevation: null, heartrate: 132, notes: '' },
+    { id: '30', type: 'run',   date: '2026-04-29', distance: 5.5,  duration: '53:15', elevation:  74, heartrate: 153, notes: '' },
+    { id: '57', type: 'cycle', date: '2026-04-30', distance: 13.6, duration: '48:30', elevation:  88, heartrate: 135, notes: 'recovery spin' },
+    { id: '31', type: 'run',   date: '2026-05-01', distance: 6.0,  duration: '58:00', elevation:  84, heartrate: 156, notes: 'May kicks off strong' },
+    { id: '32', type: 'run',   date: '2026-05-02', distance: 4.3,  duration: '41:30', elevation:  54, heartrate: 150, notes: 'double day' },
+    { id: '58', type: 'gym',   date: '2026-05-03', distance: null, duration: '1:00:00', elevation: null, heartrate: 134, notes: 'push day' },
+    { id: '33', type: 'run',   date: '2026-05-04', distance: 7.2,  duration: '1:10:20', elevation: 108, heartrate: 162, notes: 'big effort' },
+    { id: '34', type: 'run',   date: '2026-05-05', distance: 4.1,  duration: '39:30', elevation:  44, heartrate: 138, notes: 'recovery' },
+    { id: '59', type: 'gym',   date: '2026-05-06', distance: null, duration: '50:00', elevation: null, heartrate: 129, notes: '' },
+    { id: '35', type: 'run',   date: '2026-05-07', distance: 5.3,  duration: '51:10', elevation:  70, heartrate: 165, notes: 'tempo' },
+    { id: '60', type: 'cycle', date: '2026-05-07', distance: 11.2, duration: '40:00', elevation:  92, heartrate: 140, notes: 'evening ride' },
+    { id: '36', type: 'run',   date: '2026-05-08', distance: 4.5,  duration: '43:20', elevation:  58, heartrate: 152, notes: 'feeling fit' },
   ];
 
   const _stored = JSON.parse(localStorage.getItem('activities') ?? localStorage.getItem('runs') ?? 'null');
@@ -74,6 +74,7 @@
     distance: '',
     duration: '',
     elevation: '',
+    heartrate: '',
     notes: ''
   });
 
@@ -102,9 +103,10 @@
       distance: distanceMi,
       duration: normalizeDuration(form.duration),
       elevation: form.elevation ? parseFloat(form.elevation) : null,
+      heartrate: form.heartrate ? parseInt(form.heartrate) : null,
       notes: form.notes
     });
-    form = { type: form.type, date: new Date().toISOString().split('T')[0], distance: '', duration: '', elevation: '', notes: '' };
+    form = { type: form.type, date: new Date().toISOString().split('T')[0], distance: '', duration: '', elevation: '', heartrate: '', notes: '' };
     showForm = false;
   }
 
@@ -233,7 +235,7 @@
   const SVG_H = 140, PAD_X = 28, PAD_Y = 10;
   let chartWidth = $state(300);
   let hoveredIdx = $state(null);
-  let unit = $state('mi');
+  let unit = $state('km');
   let kmFactor = $derived(unit === 'km' ? 1.60934 : 1);
 
   let chartPoints = $derived.by(() => {
@@ -273,6 +275,7 @@
 
   // ── Recent activity ───────────────────────────────────────
   let filterType = $state('all');
+  let pendingDelete = $state(null);
 
   let recentActivities = $derived.by(() => {
     const sorted = [...activities].sort((a, b) => {
@@ -345,6 +348,12 @@
       </label>
       {/if}
       <label style={form.type === 'gym' ? 'grid-column: 1 / -1' : ''}>
+        <span>avg heart rate (bpm) — optional</span>
+        <input type="number" step="1" min="0" placeholder="155" bind:value={form.heartrate} />
+      </label>
+    </div>
+    <div class="form-row">
+      <label style="grid-column: 1 / -1">
         <span>notes</span>
         <input type="text" placeholder="felt great..." bind:value={form.notes} />
       </label>
@@ -482,28 +491,53 @@
       </div>
     </div>
     <div class="runs-list">
+      <div class="run-header">
+        <span class="run-date">date</span>
+        <span class="run-type">type</span>
+        <span class="run-dist">dist</span>
+        <span class="run-dur">time</span>
+        <span class="run-pace">vel</span>
+        <span class="run-hr">hr</span>
+        <span class="run-elev">elev</span>
+        <span class="run-notes">notes</span>
+      </div>
       {#each recentActivities as activity}
         {@const color = ACTIVITY_COLORS[activity.type ?? 'run']}
         <div class="run-row">
           <div class="run-date">{fmtDate(activity.date)}</div>
           <div class="run-type" style="color: {color}">{activity.type ?? 'run'}</div>
-          <div class="run-dist" style="color: {color}">
+          <div class="run-dist">
             {activity.distance != null ? `${(activity.distance * kmFactor).toFixed(1)} ${unit}` : '—'}
           </div>
           {#if activity.duration}<div class="run-dur">{activity.duration}</div>{/if}
-          <div class="run-pace" style={(activity.type ?? 'run') === 'gym' ? `color: ${color}` : ''}>
+          <div class="run-pace">
             {#if (activity.type ?? 'run') !== 'gym'}
               {@const pace = calcPace(activity.distance, activity.duration, kmFactor)}
-              {pace ? `${pace}/${unit}` : ''}
+              {pace ? `${pace}/${unit}` : '—'}
             {:else}
               —
             {/if}
           </div>
-          {#if activity.elevation != null}
-            <div class="run-elev">↑{activity.elevation}{unit === 'km' ? 'm' : 'ft'}</div>
-          {/if}
-          <div class="run-notes" style={!activity.notes ? `color: ${color}` : ''}>{activity.notes || '—'}</div>
-          <button class="del-btn" onclick={() => deleteActivity(activity.id)}>×</button>
+          <div class="run-hr">
+            {activity.heartrate ? `${activity.heartrate} bpm` : '—'}
+          </div>
+          <div class="run-elev">
+            {activity.elevation != null ? `↑${activity.elevation}${unit === 'km' ? 'm' : 'ft'}` : '—'}
+          </div>
+          <div class="run-notes">{activity.notes || '—'}</div>
+          <button
+            class="del-btn"
+            class:del-armed={pendingDelete === activity.id}
+            onclick={() => {
+              if (pendingDelete === activity.id) {
+                deleteActivity(activity.id);
+                pendingDelete = null;
+              } else {
+                pendingDelete = activity.id;
+              }
+            }}
+            onblur={() => { if (pendingDelete === activity.id) pendingDelete = null; }}
+          >{pendingDelete === activity.id ? 'del?' : '×'}</button>
         </div>
       {/each}
     </div>
@@ -825,6 +859,17 @@
     display: flex;
     flex-direction: column;
   }
+  .run-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 0 8px;
+    border-bottom: 1px solid #1c1c1c;
+    font-size: 10px;
+    color: #444;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
   .run-row {
     display: flex;
     align-items: center;
@@ -834,14 +879,15 @@
     font-size: 13px;
   }
   .run-row:last-child { border-bottom: none; }
-  .run-date { color: #999; min-width: 52px; }
-  .run-type { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; min-width: 40px; }
-  .run-dist { font-weight: 500; min-width: 60px; }
-  .run-pace { color: #666; font-size: 12px; min-width: 64px; }
+  .run-date { color: #aaa; min-width: 52px; }
+  .run-type { color: #aaa; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; min-width: 40px; }
+  .run-dist { color: #aaa; min-width: 60px; }
+  .run-pace { color: #aaa; font-size: 12px; min-width: 64px; }
+  .run-hr { color: #aaa; font-size: 12px; min-width: 58px; }
   .run-dur { color: #aaa; min-width: 44px; }
-  .run-elev { color: #555; font-size: 12px; min-width: 48px; }
+  .run-elev { color: #aaa; font-size: 12px; min-width: 48px; }
   .run-notes {
-    color: #888;
+    color: #aaa;
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -858,4 +904,5 @@
     margin-left: auto;
   }
   .del-btn:hover { color: #ff4f7b; }
+  .del-btn.del-armed { color: #ff4f7b; font-size: 12px; letter-spacing: 0.03em; }
 </style>
