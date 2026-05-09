@@ -1263,8 +1263,9 @@
     padding: 6px 10px;
     font-size: 11px;
     color: var(--tx1);
-    white-space: normal;
+    width: max-content;
     max-width: min(300px, calc(100vw - 2rem));
+    white-space: normal;
     z-index: 20;
     pointer-events: none;
     letter-spacing: 0;
@@ -1278,6 +1279,8 @@
     .form-row { grid-template-columns: 1fr; }
     .form-row label[style] { grid-column: 1 !important; }
     .runs-list { overflow-x: auto; }
+    .runs-list::-webkit-scrollbar { display: none; }
+    .runs-scroll { scrollbar-width: none; }
     .run-header, .run-row { min-width: 640px; }
     .annual-grid { overflow-x: auto; }
     .annual-stat { min-width: 90px; flex-shrink: 0; }
