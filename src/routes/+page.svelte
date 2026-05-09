@@ -384,25 +384,38 @@
 
   function bestEffortTime(type, targetMi) {
     let bestSpu = Infinity;
+    let bestActivity = null;
     for (const a of activities) {
       if ((a.type ?? 'run') !== type || !a.distance || !a.duration) continue;
       if (a.distance < targetMi) continue;
       const spu = parseSecs(a.duration) / a.distance;
-      if (spu < bestSpu) bestSpu = spu;
+      if (spu < bestSpu) { bestSpu = spu; bestActivity = a; }
     }
     if (bestSpu === Infinity) return null;
     const totalSecs = Math.round(bestSpu * targetMi);
     const h = Math.floor(totalSecs / 3600);
     const m = Math.floor((totalSecs % 3600) / 60);
     const s = totalSecs % 60;
-    return h > 0
+    const time = h > 0
       ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
       : `${m}:${String(s).padStart(2, '0')}`;
+    const isEstimate = bestActivity.distance > targetMi * 1.005;
+    return { time, isEstimate, source: bestActivity };
   }
 
   let pbTimes = $derived.by(() => {
     const targets = annualView === 'run' ? RUN_PB_TARGETS : CYCLE_PB_TARGETS;
-    return targets.map(t => ({ label: t.label, time: bestEffortTime(annualView, t.mi) }));
+    return targets.map(t => {
+      const result = bestEffortTime(annualView, t.mi);
+      if (!result) return { label: t.label, time: null, isEstimate: false, tooltip: null };
+      let tooltip = null;
+      if (result.isEstimate) {
+        const src = result.source;
+        const srcDist = src.distance * kmFactor;
+        tooltip = `Projected from best pace over ${srcDist.toFixed(2)} ${unit} on ${src.date} (${src.duration})`;
+      }
+      return { label: t.label, time: result.time, isEstimate: result.isEstimate, tooltip };
+    });
   });
 </script>
 
@@ -611,7 +624,7 @@
       <span class="pb-label">all-time PBs</span>
       {#each pbTimes as pb}
         <span class="pb-item" class:pb-empty={!pb.time}>
-          <span class="pb-key">{pb.label}</span>{pb.time ?? '—'}
+          <span class="pb-key">{pb.label}</span>{pb.time ?? '—'}{#if pb.isEstimate}<span class="pb-est" title={pb.tooltip}>est.</span>{/if}
         </span>
       {/each}
     </div>
@@ -1263,9 +1276,20 @@
     margin-right: 5px;
   }
   .pb-empty { color: #444; }
+  .pb-est {
+    font-size: 9px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-left: 3px;
+    cursor: help;
+    border-bottom: 1px dotted #555;
+  }
 
   @media (max-width: 600px) {
     .page { padding: 1rem; }
+    .header { flex-direction: column; }
+    .header-controls { width: 100%; justify-content: flex-start; }
     .form-row { grid-template-columns: 1fr; }
     .form-row label[style] { grid-column: 1 !important; }
     .runs-list { overflow-x: auto; }
