@@ -318,6 +318,14 @@
     return weeks;
   });
 
+  let currentWeekActivities = $derived(activities.filter(a => {
+    const d = new Date(a.date + 'T00:00:00');
+    const we = new Date(weekStart.getTime() + 7 * 86400000);
+    return d >= weekStart && d < we && (a.type ?? 'run') === chartView;
+  }));
+  let currentWeekMiles = $derived(+currentWeekActivities.reduce((s, a) => s + (a.distance || 0), 0).toFixed(1));
+  let currentWeekSecs  = $derived(currentWeekActivities.reduce((s, a) => s + parseSecs(a.duration), 0));
+
   let maxMiles = $derived(typeFilter === 'gym'
     ? Math.max(...chartWeeks.map(w => w.secs), 1)
     : Math.max(...chartWeeks.map(w => w.miles), 1));
@@ -382,18 +390,21 @@
   }
 
   function handleTouchStart(e) {
-    touchPanStart = { x: e.touches[0].clientX, offset: chartOffset };
+    touchPanStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, offset: chartOffset };
     touchMode = null;
   }
   function handleTouchMove(e) {
     e.preventDefault();
     const dx = e.touches[0].clientX - touchPanStart.x;
-    if (touchMode === null) touchMode = Math.abs(dx) > 20 ? 'pan' : 'scrub';
+    const dy = e.touches[0].clientY - touchPanStart.y;
+    if (touchMode === null && (Math.abs(dx) > 12 || Math.abs(dy) > 12)) {
+      touchMode = Math.abs(dx) >= Math.abs(dy) ? 'pan' : 'scrub';
+    }
     if (touchMode === 'pan') {
       const weeksPer = chartWidth / CHART_WEEKS;
       chartOffset = Math.max(0, Math.min(MAX_CHART_OFFSET, Math.round(touchPanStart.offset - dx / weeksPer)));
       hoveredIdx = null;
-    } else {
+    } else if (touchMode === 'scrub') {
       pickClosest(e.touches[0].clientX, e.currentTarget.getBoundingClientRect());
     }
   }
@@ -819,9 +830,9 @@
     <div class="card-header">
       <span class="card-label">{typeFilter === 'gym' ? 'weekly workout time' : `weekly ${chartView === 'run' ? 'running' : 'cycling'} distance`}</span>
       {#if typeFilter === 'gym'}
-        {#if chartWeeks.at(-1)?.secs > 0}<span class="card-value" style="color: {typeColor}">{Math.round(chartWeeks.at(-1).secs / 3600)}h this week</span>{/if}
+        {#if currentWeekSecs > 0}<span class="card-value" style="color: {typeColor}">{Math.round(currentWeekSecs / 3600)}h this week</span>{/if}
       {:else}
-        {#if chartWeeks.at(-1)?.miles > 0}<span class="card-value" style="color: {typeColor}">{(chartWeeks.at(-1).miles * kmFactor).toFixed(1)} {unit} this week</span>{/if}
+        {#if currentWeekMiles > 0}<span class="card-value" style="color: {typeColor}">{(currentWeekMiles * kmFactor).toFixed(1)} {unit} this week</span>{/if}
       {/if}
     </div>
     <!-- svelte-ignore a11y_no_noninteractive_tabindex a11y_no_noninteractive_element_interactions -->
