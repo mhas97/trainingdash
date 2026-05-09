@@ -1099,7 +1099,6 @@
     font-size: 12px;
     color: var(--tx1);
   }
-  .tip-left .cal-tooltip { left: auto; right: 0; transform: translateY(-150%); }
   .cal-tip-type { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; min-width: 36px; }
   .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
 
@@ -1281,6 +1280,7 @@
     .form-row { grid-template-columns: 1fr; }
     .form-row label[style] { grid-column: 1 !important; }
     .import-menu { left: 0; right: auto; }
+    .tip-left .cal-tooltip { left: auto; right: 0; transform: translateY(-150%); }
     .runs-list { overflow-x: auto; scrollbar-width: none; }
     .runs-list::-webkit-scrollbar { display: none; }
     .runs-inner { min-width: 640px; }
