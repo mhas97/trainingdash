@@ -639,7 +639,7 @@
         <span class="run-type">type</span>
         <span class="run-dist">dist</span>
         <span class="run-dur">time</span>
-        <span class="run-pace">vel</span>
+        <span class="run-pace">pace</span>
         <span class="run-hr">hr</span>
         <span class="run-elev">elev</span>
         <span class="run-notes">notes</span>
@@ -653,7 +653,7 @@
             <div class="run-dist">
               {activity.distance != null ? `${(activity.distance * kmFactor).toFixed(1)} ${unit}` : '—'}
             </div>
-            {#if activity.duration}<div class="run-dur">{activity.duration}</div>{/if}
+            <div class="run-dur">{activity.duration || '—'}</div>
             <div class="run-pace">
               {#if (activity.type ?? 'run') !== 'gym'}
                 {@const pace = calcPace(activity.distance, activity.duration, kmFactor)}
@@ -1155,13 +1155,14 @@
     font-size: 13px;
   }
   .run-row:last-child { border-bottom: none; }
-  .run-date { color: #aaa; min-width: 52px; }
-  .run-type { color: #aaa; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; min-width: 40px; }
-  .run-dist { color: #aaa; min-width: 60px; }
-  .run-pace { color: #aaa; font-size: 12px; min-width: 64px; }
-  .run-hr { color: #aaa; font-size: 12px; min-width: 58px; }
-  .run-dur { color: #aaa; min-width: 44px; }
-  .run-elev { color: #aaa; font-size: 12px; min-width: 48px; }
+  .run-date, .run-type, .run-dist, .run-pace, .run-hr, .run-dur, .run-elev {
+    color: #aaa;
+    flex: 0 0 68px;
+    width: 68px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .run-type { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
   .run-notes {
     color: #aaa;
     flex: 1;
@@ -1266,7 +1267,7 @@
     .form-row { grid-template-columns: 1fr; }
     .form-row label[style] { grid-column: 1 !important; }
     .runs-list { overflow-x: auto; }
-    .run-header, .run-row { min-width: 580px; }
+    .run-header, .run-row { min-width: 640px; }
     .annual-grid { overflow-x: auto; }
     .annual-stat { min-width: 90px; flex-shrink: 0; }
   }
