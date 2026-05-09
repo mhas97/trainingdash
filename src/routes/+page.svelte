@@ -689,6 +689,7 @@
       </div>
     </div>
     <div class="runs-list">
+      <div class="runs-inner">
       <div class="run-header">
         <span class="run-date">date</span>
         <span class="run-type">type</span>
@@ -739,6 +740,7 @@
             >{#if pendingDelete === activity.id}del?{:else}<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>{/if}</button>
           </div>
         {/each}
+      </div>
       </div>
     </div>
   </div>
@@ -1142,6 +1144,7 @@
     color: var(--tab-color, var(--tx0));
   }
   .runs-list { display: flex; flex-direction: column; }
+  .runs-inner { display: flex; flex-direction: column; }
   .runs-scroll {
     max-height: 280px;
     overflow-y: auto;
@@ -1278,11 +1281,13 @@
     .header-controls { width: 100%; justify-content: center; margin-bottom: 1rem; }
     .form-row { grid-template-columns: 1fr; }
     .form-row label[style] { grid-column: 1 !important; }
-    .runs-list { overflow-x: auto; }
+    .runs-list { overflow-x: auto; scrollbar-width: none; }
     .runs-list::-webkit-scrollbar { display: none; }
+    .runs-inner { min-width: 640px; }
     .runs-scroll { scrollbar-width: none; }
-    .run-header, .run-row { min-width: 640px; }
-    .annual-grid { overflow-x: auto; }
+    .run-header, .run-row { min-width: unset; }
+    .annual-grid { overflow-x: auto; scrollbar-width: none; }
+    .annual-grid::-webkit-scrollbar { display: none; }
     .annual-stat { min-width: 90px; flex-shrink: 0; }
   }
 </style>
