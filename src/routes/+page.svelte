@@ -1,77 +1,105 @@
 <script>
-  const TEST_RUNS = [
-    { id: '1',  date: '2026-02-18', distance: 3.2, duration: '30:05', notes: 'shaking off the rust' },
-    { id: '2',  date: '2026-02-20', distance: 4.8, duration: '46:10', notes: '' },
-    { id: '3',  date: '2026-02-25', distance: 3.5, duration: '33:20', notes: 'windy' },
-    { id: '4',  date: '2026-02-27', distance: 6.5, duration: '1:02:40', notes: 'first long run in a while' },
-    { id: '5',  date: '2026-03-04', distance: 4.1, duration: '39:15', notes: '' },
-    { id: '6',  date: '2026-03-06', distance: 3.2, duration: '30:50', notes: 'recovery' },
-    { id: '7',  date: '2026-03-08', distance: 3.8, duration: '36:20', notes: '' },
-    { id: '8',  date: '2026-03-11', distance: 4.5, duration: '43:00', notes: '' },
-    { id: '9',  date: '2026-03-13', distance: 3.8, duration: '36:45', notes: 'rainy' },
-    { id: '10', date: '2026-03-15', distance: 4.7, duration: '45:10', notes: 'felt good' },
-    { id: '11', date: '2026-03-18', distance: 4.2, duration: '40:30', notes: '' },
-    { id: '12', date: '2026-03-20', distance: 4.8, duration: '46:00', notes: 'tempo effort' },
-    { id: '13', date: '2026-03-22', distance: 6.0, duration: '58:30', notes: 'long run' },
-    { id: '14', date: '2026-03-25', distance: 3.5, duration: '33:45', notes: 'cutback week' },
-    { id: '15', date: '2026-03-28', distance: 4.2, duration: '40:15', notes: '' },
-    { id: '16', date: '2026-03-29', distance: 4.3, duration: '41:20', notes: '' },
-    { id: '17', date: '2026-04-01', distance: 4.5, duration: '43:10', notes: '' },
-    { id: '18', date: '2026-04-03', distance: 5.2, duration: '50:05', notes: 'negative split' },
-    { id: '19', date: '2026-04-05', distance: 7.3, duration: '1:11:30', notes: 'new longest run' },
-    { id: '20', date: '2026-04-08', distance: 4.8, duration: '46:20', notes: '' },
-    { id: '21', date: '2026-04-10', distance: 5.5, duration: '53:00', notes: 'track workout' },
-    { id: '22', date: '2026-04-12', distance: 8.7, duration: '1:24:45', notes: 'crushed it' },
-    { id: '23', date: '2026-04-15', distance: 5.0, duration: '48:10', notes: '' },
-    { id: '24', date: '2026-04-17', distance: 6.2, duration: '1:00:20', notes: 'first sub-hour 10k pace' },
-    { id: '25', date: '2026-04-19', distance: 4.8, duration: '46:30', notes: '' },
-    { id: '26', date: '2026-04-20', distance: 5.0, duration: '48:00', notes: 'back to back' },
-    { id: '27', date: '2026-04-22', distance: 4.0, duration: '38:45', notes: 'cutback week' },
-    { id: '28', date: '2026-04-24', distance: 5.0, duration: '48:20', notes: '' },
-    { id: '29', date: '2026-04-27', distance: 7.0, duration: '1:08:10', notes: 'long run' },
-    { id: '30', date: '2026-04-29', distance: 5.5, duration: '53:15', notes: '' },
-    { id: '31', date: '2026-05-01', distance: 6.0, duration: '58:00', notes: 'May kicks off strong' },
-    { id: '32', date: '2026-05-02', distance: 4.3, duration: '41:30', notes: 'double day' },
-    { id: '33', date: '2026-05-04', distance: 7.2, duration: '1:10:20', notes: 'big effort' },
-    { id: '34', date: '2026-05-05', distance: 4.1, duration: '39:30', notes: 'recovery' },
-    { id: '35', date: '2026-05-07', distance: 5.3, duration: '51:10', notes: 'tempo' },
-    { id: '36', date: '2026-05-08', distance: 4.5, duration: '43:20', notes: 'feeling fit' },
+  const ACTIVITY_COLORS = { run: '#ff6b35', gym: '#b44fff', cycle: '#00e5ff' };
+
+  const TEST_ACTIVITIES = [
+    { id: '1',  type: 'run',   date: '2026-02-18', distance: 3.2,  duration: '30:05', notes: 'shaking off the rust' },
+    { id: '2',  type: 'run',   date: '2026-02-20', distance: 4.8,  duration: '46:10', notes: '' },
+    { id: '37', type: 'gym',   date: '2026-02-21', distance: null, duration: '55:00', notes: 'upper body' },
+    { id: '3',  type: 'run',   date: '2026-02-25', distance: 3.5,  duration: '33:20', notes: 'windy' },
+    { id: '38', type: 'cycle', date: '2026-02-26', distance: 10.2, duration: '38:10', notes: 'canal path' },
+    { id: '4',  type: 'run',   date: '2026-02-27', distance: 6.5,  duration: '1:02:40', notes: 'first long run in a while' },
+    { id: '39', type: 'gym',   date: '2026-03-02', distance: null, duration: '50:00', notes: '' },
+    { id: '5',  type: 'run',   date: '2026-03-04', distance: 4.1,  duration: '39:15', notes: '' },
+    { id: '6',  type: 'run',   date: '2026-03-06', distance: 3.2,  duration: '30:50', notes: 'recovery' },
+    { id: '40', type: 'cycle', date: '2026-03-07', distance: 14.8, duration: '52:30', notes: 'morning ride' },
+    { id: '7',  type: 'run',   date: '2026-03-08', distance: 3.8,  duration: '36:20', notes: '' },
+    { id: '41', type: 'gym',   date: '2026-03-09', distance: null, duration: '45:00', notes: 'legs' },
+    { id: '8',  type: 'run',   date: '2026-03-11', distance: 4.5,  duration: '43:00', notes: '' },
+    { id: '9',  type: 'run',   date: '2026-03-13', distance: 3.8,  duration: '36:45', notes: 'rainy' },
+    { id: '42', type: 'gym',   date: '2026-03-14', distance: null, duration: '1:00:00', notes: 'push day' },
+    { id: '10', type: 'run',   date: '2026-03-15', distance: 4.7,  duration: '45:10', notes: 'felt good' },
+    { id: '43', type: 'cycle', date: '2026-03-16', distance: 18.5, duration: '1:05:20', notes: '' },
+    { id: '11', type: 'run',   date: '2026-03-18', distance: 4.2,  duration: '40:30', notes: '' },
+    { id: '12', type: 'run',   date: '2026-03-20', distance: 4.8,  duration: '46:00', notes: 'tempo effort' },
+    { id: '44', type: 'gym',   date: '2026-03-21', distance: null, duration: '52:00', notes: '' },
+    { id: '13', type: 'run',   date: '2026-03-22', distance: 6.0,  duration: '58:30', notes: 'long run' },
+    { id: '14', type: 'run',   date: '2026-03-25', distance: 3.5,  duration: '33:45', notes: 'cutback week' },
+    { id: '45', type: 'gym',   date: '2026-03-27', distance: null, duration: '48:00', notes: 'pull day' },
+    { id: '15', type: 'run',   date: '2026-03-28', distance: 4.2,  duration: '40:15', notes: '' },
+    { id: '16', type: 'run',   date: '2026-03-29', distance: 4.3,  duration: '41:20', notes: '' },
+    { id: '17', type: 'run',   date: '2026-04-01', distance: 4.5,  duration: '43:10', notes: '' },
+    { id: '46', type: 'gym',   date: '2026-04-02', distance: null, duration: '55:00', notes: '' },
+    { id: '18', type: 'run',   date: '2026-04-03', distance: 5.2,  duration: '50:05', notes: 'negative split' },
+    { id: '47', type: 'cycle', date: '2026-04-04', distance: 22.1, duration: '1:18:00', notes: 'long ride' },
+    { id: '19', type: 'run',   date: '2026-04-05', distance: 7.3,  duration: '1:11:30', notes: 'new longest run' },
+    { id: '20', type: 'run',   date: '2026-04-08', distance: 4.8,  duration: '46:20', notes: '' },
+    { id: '48', type: 'gym',   date: '2026-04-08', distance: null, duration: '50:00', notes: 'double day' },
+    { id: '21', type: 'run',   date: '2026-04-10', distance: 5.5,  duration: '53:00', notes: 'track workout' },
+    { id: '49', type: 'gym',   date: '2026-04-11', distance: null, duration: '45:00', notes: '' },
+    { id: '22', type: 'run',   date: '2026-04-12', distance: 8.7,  duration: '1:24:45', notes: 'crushed it' },
+    { id: '50', type: 'cycle', date: '2026-04-13', distance: 16.3, duration: '58:40', notes: '' },
+    { id: '23', type: 'run',   date: '2026-04-15', distance: 5.0,  duration: '48:10', notes: '' },
+    { id: '51', type: 'gym',   date: '2026-04-16', distance: null, duration: '1:00:00', notes: 'legs' },
+    { id: '24', type: 'run',   date: '2026-04-17', distance: 6.2,  duration: '1:00:20', notes: 'first sub-hour 10k pace' },
+    { id: '52', type: 'cycle', date: '2026-04-18', distance: 19.8, duration: '1:10:00', notes: 'hilly route' },
+    { id: '25', type: 'run',   date: '2026-04-19', distance: 4.8,  duration: '46:30', notes: '' },
+    { id: '26', type: 'run',   date: '2026-04-20', distance: 5.0,  duration: '48:00', notes: 'back to back' },
+    { id: '53', type: 'gym',   date: '2026-04-21', distance: null, duration: '55:00', notes: 'cutback week' },
+    { id: '27', type: 'run',   date: '2026-04-22', distance: 4.0,  duration: '38:45', notes: 'cutback week' },
+    { id: '54', type: 'gym',   date: '2026-04-23', distance: null, duration: '48:00', notes: '' },
+    { id: '28', type: 'run',   date: '2026-04-24', distance: 5.0,  duration: '48:20', notes: '' },
+    { id: '55', type: 'cycle', date: '2026-04-25', distance: 25.4, duration: '1:28:00', notes: 'longest ride' },
+    { id: '29', type: 'run',   date: '2026-04-27', distance: 7.0,  duration: '1:08:10', notes: 'long run' },
+    { id: '56', type: 'gym',   date: '2026-04-28', distance: null, duration: '52:00', notes: '' },
+    { id: '30', type: 'run',   date: '2026-04-29', distance: 5.5,  duration: '53:15', notes: '' },
+    { id: '57', type: 'cycle', date: '2026-04-30', distance: 13.6, duration: '48:30', notes: 'recovery spin' },
+    { id: '31', type: 'run',   date: '2026-05-01', distance: 6.0,  duration: '58:00', notes: 'May kicks off strong' },
+    { id: '32', type: 'run',   date: '2026-05-02', distance: 4.3,  duration: '41:30', notes: 'double day' },
+    { id: '58', type: 'gym',   date: '2026-05-03', distance: null, duration: '1:00:00', notes: 'push day' },
+    { id: '33', type: 'run',   date: '2026-05-04', distance: 7.2,  duration: '1:10:20', notes: 'big effort' },
+    { id: '34', type: 'run',   date: '2026-05-05', distance: 4.1,  duration: '39:30', notes: 'recovery' },
+    { id: '59', type: 'gym',   date: '2026-05-06', distance: null, duration: '50:00', notes: '' },
+    { id: '35', type: 'run',   date: '2026-05-07', distance: 5.3,  duration: '51:10', notes: 'tempo' },
+    { id: '60', type: 'cycle', date: '2026-05-07', distance: 11.2, duration: '40:00', notes: 'evening ride' },
+    { id: '36', type: 'run',   date: '2026-05-08', distance: 4.5,  duration: '43:20', notes: 'feeling fit' },
   ];
 
-  const _stored = JSON.parse(localStorage.getItem('runs') ?? 'null');
-  let runs = $state((_stored?.length > 0) ? _stored : TEST_RUNS);
+  const _stored = JSON.parse(localStorage.getItem('activities') ?? localStorage.getItem('runs') ?? 'null');
+  let activities = $state((_stored?.length > 0) ? _stored : TEST_ACTIVITIES);
 
   let showForm = $state(false);
   let form = $state({
+    type: 'run',
     date: new Date().toISOString().split('T')[0],
     distance: '',
     duration: '',
     notes: ''
   });
 
-  function addRun() {
-    if (!form.date || !form.distance) return;
-    const distanceMi = unit === 'km'
-      ? parseFloat(form.distance) / 1.60934
-      : parseFloat(form.distance);
-    runs.push({
+  function addActivity() {
+    if (!form.date) return;
+    if (form.type !== 'gym' && !form.distance) return;
+    const distanceMi = form.type === 'gym' ? null :
+      unit === 'km' ? parseFloat(form.distance) / 1.60934 : parseFloat(form.distance);
+    activities.push({
       id: Date.now().toString(),
+      type: form.type,
       date: form.date,
       distance: distanceMi,
       duration: form.duration,
       notes: form.notes
     });
-    form = { date: new Date().toISOString().split('T')[0], distance: '', duration: '', notes: '' };
+    form = { type: form.type, date: new Date().toISOString().split('T')[0], distance: '', duration: '', notes: '' };
     showForm = false;
   }
 
-  function deleteRun(id) {
-    const idx = runs.findIndex(r => r.id === id);
-    if (idx !== -1) runs.splice(idx, 1);
+  function deleteActivity(id) {
+    const idx = activities.findIndex(a => a.id === id);
+    if (idx !== -1) activities.splice(idx, 1);
   }
 
   $effect(() => {
-    localStorage.setItem('runs', JSON.stringify(runs));
+    localStorage.setItem('activities', JSON.stringify(activities));
   });
 
   // ── Calendar ──────────────────────────────────────────────
@@ -101,7 +129,13 @@
     return cells;
   });
 
-  let runDates = $derived(new Set(runs.map(r => r.date)));
+  let activityByDate = $derived(
+    activities.reduce((acc, a) => {
+      if (!acc[a.date]) acc[a.date] = new Set();
+      acc[a.date].add(a.type ?? 'run');
+      return acc;
+    }, {})
+  );
 
   function toDateStr(y, m, d) {
     return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -119,14 +153,19 @@
   const weekStart = getWeekStart(today);
   const weekEnd = new Date(weekStart.getTime() + 7 * 86400000);
 
-  let thisWeekRuns = $derived(
-    runs.filter(r => {
-      const d = new Date(r.date + 'T00:00:00');
+  let thisWeekActivities = $derived(
+    activities.filter(a => {
+      const d = new Date(a.date + 'T00:00:00');
       return d >= weekStart && d < weekEnd;
     })
   );
 
-  let weekMiles = $derived(+thisWeekRuns.reduce((s, r) => s + r.distance, 0).toFixed(1));
+  let weekMiles = $derived(
+    +thisWeekActivities
+      .filter(a => (a.type ?? 'run') === 'run')
+      .reduce((s, a) => s + (a.distance || 0), 0)
+      .toFixed(1)
+  );
 
   function parseSecs(str) {
     if (!str) return 0;
@@ -136,7 +175,7 @@
     return 0;
   }
 
-  let weekSecs = $derived(thisWeekRuns.reduce((s, r) => s + parseSecs(r.duration), 0));
+  let weekSecs = $derived(thisWeekActivities.reduce((s, a) => s + parseSecs(a.duration), 0));
 
   function fmtTime(secs) {
     if (secs === 0) return '—';
@@ -145,15 +184,18 @@
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   }
 
-  // ── Weekly chart (last 12 weeks) ──────────────────────────
+  // ── Weekly chart — runs only ──────────────────────────────
   let chartWeeks = $derived.by(() => {
     const weeks = [];
     for (let i = 11; i >= 0; i--) {
       const ws = new Date(weekStart.getTime() - i * 7 * 86400000);
       const we = new Date(ws.getTime() + 7 * 86400000);
-      const miles = runs
-        .filter(r => { const d = new Date(r.date + 'T00:00:00'); return d >= ws && d < we; })
-        .reduce((s, r) => s + r.distance, 0);
+      const miles = activities
+        .filter(a => {
+          const d = new Date(a.date + 'T00:00:00');
+          return d >= ws && d < we && (a.type ?? 'run') === 'run';
+        })
+        .reduce((s, a) => s + (a.distance || 0), 0);
       const label = `${ws.getDate()}/${ws.getMonth() + 1}`;
       weeks.push({ miles: +miles.toFixed(1), label, isCurrent: i === 0 });
     }
@@ -203,11 +245,17 @@
     hoveredIdx = closest;
   }
 
-  // ── Recent runs ───────────────────────────────────────────
-  let recentRuns = $derived([...runs].sort((a, b) => {
-    const byDate = b.date.localeCompare(a.date);
-    return byDate !== 0 ? byDate : Number(b.id) - Number(a.id);
-  }).slice(0, 15));
+  // ── Recent activity ───────────────────────────────────────
+  let filterType = $state('all');
+
+  let recentActivities = $derived.by(() => {
+    const sorted = [...activities].sort((a, b) => {
+      const byDate = b.date.localeCompare(a.date);
+      return byDate !== 0 ? byDate : Number(b.id) - Number(a.id);
+    });
+    const filtered = filterType === 'all' ? sorted : sorted.filter(a => (a.type ?? 'run') === filterType);
+    return filtered.slice(0, 15);
+  });
 
   function fmtDate(ds) {
     return new Date(ds + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
@@ -217,8 +265,8 @@
 <div class="page">
   <div class="header">
     <div>
-      <h1>runs</h1>
-      <p class="subtitle">training log</p>
+      <h1>training</h1>
+      <p class="subtitle">activity log</p>
     </div>
     <div class="header-controls">
       <div class="unit-toggle">
@@ -226,7 +274,7 @@
         <button class:active={unit === 'km'} onclick={() => unit = 'km'}>km</button>
       </div>
       <button class="log-btn" onclick={() => (showForm = !showForm)}>
-        {showForm ? 'cancel' : '+ log run'}
+        {showForm ? 'cancel' : '+ log'}
       </button>
     </div>
   </div>
@@ -235,25 +283,43 @@
   <div class="form-card">
     <div class="form-row">
       <label>
+        <span>type</span>
+        <div class="type-tabs">
+          {#each ['run', 'gym', 'cycle'] as t}
+            <button
+              class:active={form.type === t}
+              style={form.type === t ? `--tab-color: ${ACTIVITY_COLORS[t]}` : ''}
+              onclick={() => form.type = t}
+            >{t}</button>
+          {/each}
+        </div>
+      </label>
+      <label>
         <span>date</span>
         <input type="date" bind:value={form.date} />
       </label>
+    </div>
+    <div class="form-row">
+      {#if form.type !== 'gym'}
       <label>
         <span>distance ({unit})</span>
         <input type="number" step="0.01" min="0" placeholder="3.1" bind:value={form.distance} />
       </label>
-    </div>
-    <div class="form-row">
+      {/if}
       <label>
         <span>duration</span>
         <input type="text" placeholder="32:45" bind:value={form.duration} />
       </label>
-      <label>
+    </div>
+    <div class="form-row">
+      <label style="grid-column: 1 / -1">
         <span>notes</span>
         <input type="text" placeholder="felt great..." bind:value={form.notes} />
       </label>
     </div>
-    <button class="submit-btn" onclick={addRun}>save run</button>
+    <button class="submit-btn" style="--btn-color: {ACTIVITY_COLORS[form.type]}" onclick={addActivity}>
+      save {form.type}
+    </button>
   </div>
   {/if}
 
@@ -261,17 +327,17 @@
   <div class="stats-row">
     <div class="stat">
       <div class="stat-value">{(weekMiles * kmFactor).toFixed(1)}</div>
-      <div class="stat-label">{unit}</div>
+      <div class="stat-label">{unit} running</div>
     </div>
     <div class="divider"></div>
     <div class="stat">
       <div class="stat-value">{fmtTime(weekSecs)}</div>
-      <div class="stat-label">time</div>
+      <div class="stat-label">active time</div>
     </div>
     <div class="divider"></div>
     <div class="stat">
-      <div class="stat-value">{thisWeekRuns.length}</div>
-      <div class="stat-label">runs</div>
+      <div class="stat-value">{thisWeekActivities.length}</div>
+      <div class="stat-label">workouts</div>
     </div>
   </div>
   <div class="section-label">this week</div>
@@ -292,20 +358,28 @@
           <div></div>
         {:else}
           {@const ds = toDateStr(calYear, calMonth, day)}
-          <div
-            class="cal-day"
-            class:has-run={runDates.has(ds)}
-            class:is-today={ds === todayStr}
-          >{day}</div>
+          {@const types = activityByDate[ds]}
+          <div class="cal-day" class:is-today={ds === todayStr}>
+            <span>{day}</span>
+            {#if types}
+              <div class="cal-dots">
+                {#each ['run','gym','cycle'] as t}
+                  {#if types.has(t)}
+                    <div class="cal-dot" style="background: {ACTIVITY_COLORS[t]}"></div>
+                  {/if}
+                {/each}
+              </div>
+            {/if}
+          </div>
         {/if}
       {/each}
     </div>
   </div>
 
-  <!-- Weekly mileage chart -->
+  <!-- Weekly distance chart (runs) -->
   <div class="card">
     <div class="card-header">
-      <span class="card-label">weekly distance</span>
+      <span class="card-label">weekly running distance</span>
       {#if weekMiles > 0}<span class="card-value">{(weekMiles * kmFactor).toFixed(1)} {unit} this week</span>{/if}
     </div>
     <div class="chart-container" bind:clientWidth={chartWidth}>
@@ -359,18 +433,34 @@
     </div>
   </div>
 
-  <!-- Recent runs -->
-  {#if recentRuns.length > 0}
+  <!-- Recent activity -->
+  {#if recentActivities.length > 0 || filterType !== 'all'}
   <div class="card">
-    <div class="card-label">recent runs</div>
+    <div class="list-header">
+      <span class="card-label" style="margin-bottom: 0">recent activity</span>
+      <div class="filter-tabs">
+        <button class:active={filterType === 'all'} onclick={() => filterType = 'all'}>all</button>
+        {#each ['run', 'gym', 'cycle'] as t}
+          <button
+            class:active={filterType === t}
+            style={filterType === t ? `--tab-color: ${ACTIVITY_COLORS[t]}` : ''}
+            onclick={() => filterType = t}
+          >{t}</button>
+        {/each}
+      </div>
+    </div>
     <div class="runs-list">
-      {#each recentRuns as run}
+      {#each recentActivities as activity}
+        {@const color = ACTIVITY_COLORS[activity.type ?? 'run']}
         <div class="run-row">
-          <div class="run-date">{fmtDate(run.date)}</div>
-          <div class="run-dist">{(run.distance * kmFactor).toFixed(1)} {unit}</div>
-          {#if run.duration}<div class="run-dur">{run.duration}</div>{/if}
-          <div class="run-notes">{run.notes || ''}</div>
-          <button class="del-btn" onclick={() => deleteRun(run.id)}>×</button>
+          <div class="run-date">{fmtDate(activity.date)}</div>
+          <div class="run-type" style="color: {color}">{activity.type ?? 'run'}</div>
+          <div class="run-dist" style="color: {color}">
+            {activity.distance != null ? `${(activity.distance * kmFactor).toFixed(1)} ${unit}` : '—'}
+          </div>
+          {#if activity.duration}<div class="run-dur">{activity.duration}</div>{/if}
+          <div class="run-notes">{activity.notes || ''}</div>
+          <button class="del-btn" onclick={() => deleteActivity(activity.id)}>×</button>
         </div>
       {/each}
     </div>
@@ -440,7 +530,6 @@
     padding: 7px 14px;
     cursor: pointer;
     letter-spacing: 0.04em;
-    margin-top: 6px;
   }
   .log-btn:hover { border-color: #555; }
 
@@ -480,8 +569,29 @@
     font-family: inherit;
   }
   input:focus { border-color: #ff6b35; }
+  .type-tabs {
+    display: flex;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    overflow: hidden;
+    height: 36px;
+  }
+  .type-tabs button {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #555;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.04em;
+  }
+  .type-tabs button.active {
+    background: #1e1e24;
+    color: var(--tab-color, #ff6b35);
+  }
   .submit-btn {
-    background: #ff6b35;
+    background: var(--btn-color, #ff6b35);
     border: none;
     border-radius: 6px;
     color: #fff;
@@ -491,7 +601,7 @@
     cursor: pointer;
     letter-spacing: 0.04em;
   }
-  .submit-btn:hover { background: #e55a28; }
+  .submit-btn:hover { opacity: 0.85; }
 
   /* ── Stats ── */
   .stats-row {
@@ -596,23 +706,26 @@
   .cal-day {
     aspect-ratio: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 3px;
     font-size: 13px;
     color: #ccc;
-    border-radius: 50%;
-  }
-  .cal-day.has-run {
-    color: #ff6b35;
-    font-weight: 600;
-    background: rgba(255, 107, 53, 0.12);
+    border-radius: 8px;
   }
   .cal-day.is-today {
     color: #fff;
     border: 1px solid #333;
   }
-  .cal-day.has-run.is-today {
-    border-color: #ff6b35;
+  .cal-dots {
+    display: flex;
+    gap: 2px;
+  }
+  .cal-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
   }
 
   /* ── Chart ── */
@@ -637,7 +750,33 @@
     transform: translateX(-50%);
     white-space: nowrap;
   }
-  /* ── Runs list ── */
+
+  /* ── Activity list ── */
+  .list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .filter-tabs {
+    display: flex;
+    gap: 2px;
+  }
+  .filter-tabs button {
+    background: none;
+    border: 1px solid #2a2a2a;
+    border-radius: 4px;
+    color: #555;
+    font-size: 11px;
+    padding: 3px 8px;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.04em;
+  }
+  .filter-tabs button.active {
+    border-color: var(--tab-color, #666);
+    color: var(--tab-color, #fff);
+  }
   .runs-list {
     display: flex;
     flex-direction: column;
@@ -645,14 +784,15 @@
   .run-row {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     padding: 9px 0;
     border-bottom: 1px solid #1c1c1c;
     font-size: 13px;
   }
   .run-row:last-child { border-bottom: none; }
   .run-date { color: #999; min-width: 52px; }
-  .run-dist { color: #ff6b35; font-weight: 500; min-width: 50px; }
+  .run-type { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; min-width: 40px; }
+  .run-dist { font-weight: 500; min-width: 60px; }
   .run-dur { color: #aaa; min-width: 44px; }
   .run-notes {
     color: #888;
