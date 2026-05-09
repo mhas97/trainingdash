@@ -914,7 +914,7 @@
     min-height: 100vh;
     padding: 2rem;
     padding-bottom: max(2rem, calc(2rem + env(safe-area-inset-bottom)));
-    max-width: 860px;
+    max-width: 1080px;
     margin: 0 auto;
   }
 
