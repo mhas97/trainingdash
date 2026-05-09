@@ -5,7 +5,7 @@
     light:  { bg: '#f5f5f3', card: '#ffffff', card2: '#ebebea', hover: '#e2e2e0', rb: '#d8d8d6', b1: '#d8d8d6', b2: '#c8c8c6', b3: '#b0b0ae', track: '#a0a0a0', run: '#e05a1a', gym: '#8833cc', cycle: '#0088aa', tx0: '#111111', tx1: '#555555', tx2: '#999999' },
     dark:   { bg: '#0d0d0f', card: '#131318', card2: '#1a1a20', hover: '#1e1e24', rb: '#1c1c1c', b1: '#222',    b2: '#2a2a2a', b3: '#333',    track: '#444',    run: '#ff6b35', gym: '#b44fff', cycle: '#00e5ff', tx0: '#ffffff', tx1: '#aaaaaa', tx2: '#666666' },
     slate:  { bg: '#0b0c14', card: '#111420', card2: '#181b2e', hover: '#1e2138', rb: '#1a1d30', b1: '#1e2035', b2: '#252840', b3: '#2d3055', track: '#3a3d5c', run: '#6366f1', gym: '#f472b6', cycle: '#34d399', tx0: '#ffffff', tx1: '#aaaaaa', tx2: '#666666' },
-    forest: { bg: '#080d09', card: '#0e160f', card2: '#131e14', hover: '#182419', rb: '#162017', b1: '#1a2e1b', b2: '#1f351f', b3: '#263d27', track: '#2d4a2e', run: '#4ade80', gym: '#facc15', cycle: '#38bdf8', tx0: '#ffffff', tx1: '#aaaaaa', tx2: '#666666' },
+    matrix: { bg: '#020d04', card: '#050f06', card2: '#081509', hover: '#0c1e0e', rb: '#0a1a0c', b1: '#0d2410', b2: '#102e13', b3: '#163d1a', track: '#1a5c1f', run: '#00ff41', gym: '#00cc33', cycle: '#00ff99', tx0: '#00ff41', tx1: '#00cc33', tx2: '#1a5c1f' },
     amber:  { bg: '#0f0d0a', card: '#171410', card2: '#1e1a14', hover: '#23201a', rb: '#201e18', b1: '#2a2218', b2: '#322a1e', b3: '#3d3226', track: '#4a4030', run: '#f59e0b', gym: '#f87171', cycle: '#a78bfa', tx0: '#ffffff', tx1: '#aaaaaa', tx2: '#666666' },
     mono:   { bg: '#0a0a0a', card: '#111111', card2: '#181818', hover: '#1e1e1e', rb: '#1a1a1a', b1: '#222222', b2: '#2a2a2a', b3: '#333333', track: '#444444', run: '#e5e5e5', gym: '#888888', cycle: '#cccccc', tx0: '#ffffff', tx1: '#aaaaaa', tx2: '#666666' },
   };
@@ -21,6 +21,43 @@
   );
   $effect(() => { localStorage.setItem('theme', theme); });
   $effect(() => { document.body.style.background = T.bg; });
+
+  function matrixRain(canvas) {
+    const CHARS = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789';
+    const fs = 14;
+    let cols, drops, raf;
+
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      cols  = Math.floor(canvas.width / fs);
+      drops = Array.from({ length: cols }, () => Math.random() * -50);
+    }
+
+    function draw() {
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'rgba(2,13,4,0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = `${fs}px monospace`;
+      for (let i = 0; i < drops.length; i++) {
+        const ch = CHARS[Math.floor(Math.random() * CHARS.length)];
+        const bright = drops[i] < 2;
+        ctx.fillStyle = bright ? '#ccffdd' : '#00ff41';
+        ctx.globalAlpha = bright ? 0.9 : 0.45;
+        ctx.fillText(ch, i * fs, drops[i] * fs);
+        ctx.globalAlpha = 1;
+        if (drops[i] * fs > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i] += 0.5;
+      }
+      raf = requestAnimationFrame(draw);
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+    draw();
+
+    return { destroy() { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); } };
+  }
 
   const _stored = JSON.parse(localStorage.getItem('activities') ?? 'null');
   let _userActivities = $state(_stored ?? []);
@@ -519,10 +556,15 @@
   });
 </script>
 
+{#if theme === 'matrix'}
+  <canvas class="matrix-canvas"
+    use:matrixRain
+  ></canvas>
+{/if}
 <div class="page" style={themeStyle}>
   <div class="header">
     <div>
-      <h1>training</h1>
+      <h1>run.dash</h1>
       <p class="subtitle">activity log</p>
     </div>
     <div class="header-controls">
@@ -909,7 +951,12 @@
 {/if}
 
 <style>
+  .matrix-canvas {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+  }
   .page {
+    position: relative; z-index: 1;
     background: var(--bg);
     min-height: 100vh;
     padding: 2rem;
