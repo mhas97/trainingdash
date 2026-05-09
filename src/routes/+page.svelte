@@ -665,7 +665,7 @@
   }
   .divider {
     width: 1px;
-    background: #222;
+    background: #444;
     margin: 0 4px;
   }
   .section-label {
@@ -733,7 +733,7 @@
   .cal-label {
     text-align: center;
     font-size: 11px;
-    color: #777;
+    color: #aaa;
     text-transform: uppercase;
     padding-bottom: 6px;
   }
@@ -743,6 +743,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    border-top: 1px solid rgba(255, 107, 53, 0.15);
     justify-content: center;
     gap: 3px;
     font-size: 13px;
