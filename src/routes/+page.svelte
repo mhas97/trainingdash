@@ -106,7 +106,7 @@
 
   const _stored = JSON.parse(localStorage.getItem('activities') ?? 'null');
   let _userActivities = $state(_stored ?? []);
-  let showExample = $state(false);
+  let showExample = $state(!localStorage.getItem('activities') || JSON.parse(localStorage.getItem('activities') ?? '[]').length === 0);
   let activities = $derived(showExample ? EXAMPLE_ACTIVITIES : _userActivities);
 
   function toggleExample() {
