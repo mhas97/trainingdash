@@ -800,8 +800,8 @@
             <div class="run-notes">{activity.notes || '—'}</div>
             {#if activity.track}
               <button class="map-btn" class:map-btn-active={mapActivityId === activity.id}
-                onclick={() => mapActivityId = mapActivityId === activity.id ? null : activity.id}
-                title="Show route">
+                aria-label="Show route"
+                onclick={() => mapActivityId = mapActivityId === activity.id ? null : activity.id}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
               </button>
             {/if}
@@ -826,9 +826,9 @@
     {#if mapActivityId}
       {@const act = recentActivities.find(a => a.id === mapActivityId)}
       {#if act?.track}
-        {@const W = 400}
-        {@const H = 220}
-        {@const pad = 16}
+        {@const W = 280}
+        {@const H = 160}
+        {@const pad = 12}
         {@const pts = routePolyline(act.track, W, H, pad)}
         {@const ep = routeEndpoints(act.track, W, H, pad)}
         {@const col = ACTIVITY_COLORS[act.type ?? 'run']}
@@ -1274,7 +1274,7 @@
   .sort-arrow-dim { opacity: 0.25; }
   .map-btn { background: none; border: none; padding: 2px; color: var(--tx2); cursor: pointer; opacity: 0.4; flex-shrink: 0; }
   .map-btn:hover, .map-btn.map-btn-active { opacity: 1; color: var(--tx0); }
-  .route-map-wrap { margin-top: 12px; border-radius: 8px; overflow: hidden; }
+  .route-map-wrap { margin-top: 12px; border-radius: 8px; overflow: hidden; max-width: 280px; }
   .run-row {
     display: flex;
     align-items: center;
