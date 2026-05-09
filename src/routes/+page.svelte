@@ -1084,5 +1084,7 @@
     .form-row label[style] { grid-column: 1 !important; }
     .runs-list { overflow-x: auto; }
     .run-header, .run-row { min-width: 580px; }
+    .annual-grid { overflow-x: auto; }
+    .annual-stat { min-width: 90px; flex-shrink: 0; }
   }
 </style>
