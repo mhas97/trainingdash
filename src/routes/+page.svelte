@@ -243,15 +243,39 @@
   // ── Recent activity ───────────────────────────────────────
   let filterType = $state('all');
   let pendingDelete = $state(null);
+  let sortField = $state('date');
+  let sortDir = $state('desc');
+
+  function sortVal(a, field) {
+    switch (field) {
+      case 'date':     return a.date;
+      case 'type':     return a.type ?? 'run';
+      case 'dist':     return a.distance ?? -1;
+      case 'time':     return parseSecs(a.duration);
+      case 'pace':     return (a.distance && a.duration) ? parseSecs(a.duration) / a.distance : Infinity;
+      case 'hr':       return a.heartrate ?? -1;
+      case 'elev':     return a.elevation ?? -1;
+    }
+  }
 
   let recentActivities = $derived.by(() => {
-    const sorted = [...activities].sort((a, b) => {
-      const byDate = b.date.localeCompare(a.date);
-      return byDate !== 0 ? byDate : Number(b.id) - Number(a.id);
+    const filtered = filterType === 'all' ? [...activities] : activities.filter(a => (a.type ?? 'run') === filterType);
+    return filtered.sort((a, b) => {
+      const av = sortVal(a, sortField), bv = sortVal(b, sortField);
+      const cmp = typeof av === 'string' ? av.localeCompare(bv) : av - bv;
+      return sortDir === 'desc' ? -cmp : cmp;
     });
-    const filtered = filterType === 'all' ? sorted : sorted.filter(a => (a.type ?? 'run') === filterType);
-    return filtered;
   });
+
+  function setSort(field) {
+    if (sortField === field) sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+    else { sortField = field; sortDir = 'desc'; }
+  }
+
+  function sortIcon(field) {
+    if (sortField !== field) return '↕';
+    return sortDir === 'desc' ? '↓' : '↑';
+  }
 
   function fmtDate(ds) {
     return new Date(ds + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
@@ -683,7 +707,7 @@
   {#if recentActivities.length > 0 || filterType !== 'all'}
   <div class="card">
     <div class="list-header">
-      <span class="card-label" style="margin-bottom: 0">recent activity</span>
+      <span class="card-label" style="margin-bottom: 0">activity</span>
       <div class="filter-tabs">
         <button class:active={filterType === 'all'} onclick={() => filterType = 'all'}>all</button>
         {#each ['run', 'cycle', 'gym'] as t}
@@ -698,13 +722,13 @@
     <div class="runs-list">
       <div class="runs-inner">
       <div class="run-header">
-        <span class="run-date">date</span>
-        <span class="run-type">type</span>
-        <span class="run-dist">dist</span>
-        <span class="run-dur">time</span>
-        <span class="run-pace">pace</span>
-        <span class="run-hr">hr</span>
-        <span class="run-elev">elev</span>
+        <button class="sort-btn run-date"  class:sort-active={sortField==='date'}  onclick={() => setSort('date')}>date  <span class="sort-arrow" class:sort-arrow-dim={sortField!=='date'}>{sortIcon('date')}</span></button>
+        <button class="sort-btn run-type"  class:sort-active={sortField==='type'}  onclick={() => setSort('type')}>type  <span class="sort-arrow" class:sort-arrow-dim={sortField!=='type'}>{sortIcon('type')}</span></button>
+        <button class="sort-btn run-dist"  class:sort-active={sortField==='dist'}  onclick={() => setSort('dist')}>dist  <span class="sort-arrow" class:sort-arrow-dim={sortField!=='dist'}>{sortIcon('dist')}</span></button>
+        <button class="sort-btn run-dur"   class:sort-active={sortField==='time'}  onclick={() => setSort('time')}>time  <span class="sort-arrow" class:sort-arrow-dim={sortField!=='time'}>{sortIcon('time')}</span></button>
+        <button class="sort-btn run-pace"  class:sort-active={sortField==='pace'}  onclick={() => setSort('pace')}>pace  <span class="sort-arrow" class:sort-arrow-dim={sortField!=='pace'}>{sortIcon('pace')}</span></button>
+        <button class="sort-btn run-hr"    class:sort-active={sortField==='hr'}    onclick={() => setSort('hr')}>hr    <span class="sort-arrow" class:sort-arrow-dim={sortField!=='hr'}>{sortIcon('hr')}</span></button>
+        <button class="sort-btn run-elev"  class:sort-active={sortField==='elev'}  onclick={() => setSort('elev')}>elev  <span class="sort-arrow" class:sort-arrow-dim={sortField!=='elev'}>{sortIcon('elev')}</span></button>
         <span class="run-notes">notes</span>
       </div>
       <div class="runs-scroll">
@@ -1171,6 +1195,15 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
   }
+  .sort-btn {
+    background: none; border: none; padding: 0; margin: 0;
+    font: inherit; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--track); cursor: pointer; display: flex; align-items: center; gap: 2px;
+  }
+  .sort-btn:hover { color: var(--tx1); }
+  .sort-btn.sort-active { color: var(--tx0); }
+  .sort-arrow { font-size: 9px; opacity: 0.8; }
+  .sort-arrow-dim { opacity: 0.25; }
   .run-row {
     display: flex;
     align-items: center;
