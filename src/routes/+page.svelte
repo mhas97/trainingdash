@@ -73,12 +73,26 @@
     date: new Date().toISOString().split('T')[0],
     distance: '',
     duration: '',
+    elevation: '',
     notes: ''
   });
 
+  let canSave = $derived(
+    !!form.date &&
+    !!form.duration &&
+    (form.type === 'gym' || !!form.distance)
+  );
+
+  function normalizeDuration(val) {
+    if (!val) return val;
+    const parts = val.split(':');
+    if (parts.length === 1) return parts[0].padStart(2, '0') + ':00';
+    if (parts.length === 2) return parts[0].padStart(2, '0') + ':' + parts[1].padStart(2, '0');
+    return parts[0] + ':' + parts[1].padStart(2, '0') + ':' + parts[2].padStart(2, '0');
+  }
+
   function addActivity() {
-    if (!form.date) return;
-    if (form.type !== 'gym' && !form.distance) return;
+    if (!canSave) return;
     const distanceMi = form.type === 'gym' ? null :
       unit === 'km' ? parseFloat(form.distance) / 1.60934 : parseFloat(form.distance);
     activities.push({
@@ -86,10 +100,11 @@
       type: form.type,
       date: form.date,
       distance: distanceMi,
-      duration: form.duration,
+      duration: normalizeDuration(form.duration),
+      elevation: form.elevation ? parseFloat(form.elevation) : null,
       notes: form.notes
     });
-    form = { type: form.type, date: new Date().toISOString().split('T')[0], distance: '', duration: '', notes: '' };
+    form = { type: form.type, date: new Date().toISOString().split('T')[0], distance: '', duration: '', elevation: '', notes: '' };
     showForm = false;
   }
 
@@ -176,6 +191,17 @@
   }
 
   let weekSecs = $derived(thisWeekActivities.reduce((s, a) => s + parseSecs(a.duration), 0));
+
+  function calcPace(distanceMi, duration, kf) {
+    if (!distanceMi || !duration) return null;
+    const secs = parseSecs(duration);
+    if (secs === 0) return null;
+    const dist = distanceMi * kf;
+    const spu = secs / dist;
+    const m = Math.floor(spu / 60);
+    const s = Math.round(spu % 60);
+    return `${m}:${String(s).padStart(2, '0')}`;
+  }
 
   function fmtTime(secs) {
     if (secs === 0) return '—';
@@ -312,12 +338,18 @@
       </label>
     </div>
     <div class="form-row">
-      <label style="grid-column: 1 / -1">
+      {#if form.type !== 'gym'}
+      <label>
+        <span>elevation ({unit === 'km' ? 'm' : 'ft'}) — optional</span>
+        <input type="number" step="1" min="0" placeholder="0" bind:value={form.elevation} />
+      </label>
+      {/if}
+      <label style={form.type === 'gym' ? 'grid-column: 1 / -1' : ''}>
         <span>notes</span>
         <input type="text" placeholder="felt great..." bind:value={form.notes} />
       </label>
     </div>
-    <button class="submit-btn" style="--btn-color: {ACTIVITY_COLORS[form.type]}" onclick={addActivity}>
+    <button class="submit-btn" style="--btn-color: {ACTIVITY_COLORS[form.type]}" onclick={addActivity} disabled={!canSave}>
       save {form.type}
     </button>
   </div>
@@ -459,7 +491,18 @@
             {activity.distance != null ? `${(activity.distance * kmFactor).toFixed(1)} ${unit}` : '—'}
           </div>
           {#if activity.duration}<div class="run-dur">{activity.duration}</div>{/if}
-          <div class="run-notes">{activity.notes || ''}</div>
+          <div class="run-pace" style={(activity.type ?? 'run') === 'gym' ? `color: ${color}` : ''}>
+            {#if (activity.type ?? 'run') !== 'gym'}
+              {@const pace = calcPace(activity.distance, activity.duration, kmFactor)}
+              {pace ? `${pace}/${unit}` : ''}
+            {:else}
+              —
+            {/if}
+          </div>
+          {#if activity.elevation != null}
+            <div class="run-elev">↑{activity.elevation}{unit === 'km' ? 'm' : 'ft'}</div>
+          {/if}
+          <div class="run-notes" style={!activity.notes ? `color: ${color}` : ''}>{activity.notes || '—'}</div>
           <button class="del-btn" onclick={() => deleteActivity(activity.id)}>×</button>
         </div>
       {/each}
@@ -601,7 +644,8 @@
     cursor: pointer;
     letter-spacing: 0.04em;
   }
-  .submit-btn:hover { opacity: 0.85; }
+  .submit-btn:hover:not(:disabled) { opacity: 0.85; }
+  .submit-btn:disabled { background: #222; color: #555; cursor: default; }
 
   /* ── Stats ── */
   .stats-row {
@@ -793,7 +837,9 @@
   .run-date { color: #999; min-width: 52px; }
   .run-type { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; min-width: 40px; }
   .run-dist { font-weight: 500; min-width: 60px; }
+  .run-pace { color: #666; font-size: 12px; min-width: 64px; }
   .run-dur { color: #aaa; min-width: 44px; }
+  .run-elev { color: #555; font-size: 12px; min-width: 48px; }
   .run-notes {
     color: #888;
     flex: 1;
