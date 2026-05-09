@@ -892,4 +892,12 @@
   }
   .del-btn:hover { color: #ff4f7b; }
   .del-btn.del-armed { color: #ff4f7b; font-size: 12px; letter-spacing: 0.03em; }
+
+  @media (max-width: 600px) {
+    .page { padding: 1rem; }
+    .form-row { grid-template-columns: 1fr; }
+    .form-row label[style] { grid-column: 1 !important; }
+    .runs-list { overflow-x: auto; }
+    .run-header, .run-row { min-width: 580px; }
+  }
 </style>
