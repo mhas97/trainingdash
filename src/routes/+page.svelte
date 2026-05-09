@@ -757,13 +757,13 @@
       {#each DAYS as label}
         <div class="cal-label">{label}</div>
       {/each}
-      {#each calDays as day}
+      {#each calDays as day, ci}
         {#if day === null}
           <div></div>
         {:else}
           {@const ds = toDateStr(calYear, calMonth, day)}
           {@const types = activityByDate[ds]}
-          <div class="cal-day" class:is-today={ds === todayStr}
+          <div class="cal-day" class:is-today={ds === todayStr} class:tip-left={ci % 7 >= 4}
             role="gridcell"
             tabindex="0"
             onmouseenter={() => hoveredDay = ds}
@@ -786,8 +786,7 @@
                   {#each dayActivities as act}
                     <span class="cal-tip-type" style="color: {ACTIVITY_COLORS[act.type]}">{act.type}</span>
                     <span>{act.distance != null ? `${(act.distance * kmFactor).toFixed(1)}${unit}` : '—'}</span>
-                    <span>{act.duration}</span>
-                    <span class="cal-tip-notes">{act.notes || ''}</span>
+                    <span>{act.duration || '—'}</span>
                   {/each}
                 </div>
               {/if}
@@ -1084,7 +1083,7 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-45%, -150%);
+    transform: translate(-50%, -150%);
     background: var(--card2);
     border: 1px solid var(--b2);
     border-radius: 8px;
@@ -1093,15 +1092,15 @@
     pointer-events: none;
     white-space: nowrap;
     display: grid;
-    grid-template-columns: 36px 52px 44px auto;
+    grid-template-columns: 36px 52px 44px;
     column-gap: 8px;
     row-gap: 5px;
     align-items: center;
     font-size: 12px;
     color: var(--tx1);
   }
+  .tip-left .cal-tooltip { left: auto; right: 0; transform: translateY(-150%); }
   .cal-tip-type { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; min-width: 36px; }
-  .cal-tip-notes { color: var(--tx2); }
   .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
 
   /* ── Chart ── */
