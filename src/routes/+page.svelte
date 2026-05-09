@@ -728,7 +728,7 @@
                 }
               }}
               onblur={() => { if (pendingDelete === activity.id) pendingDelete = null; }}
-            >{pendingDelete === activity.id ? 'del?' : '🗑'}</button>
+            >{#if pendingDelete === activity.id}del?{:else}<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>{/if}</button>
           </div>
         {/each}
       </div>
@@ -1171,16 +1171,16 @@
   .del-btn {
     background: none;
     border: none;
-    color: var(--b2);
-    font-size: 14px;
+    color: #ff4f7b;
+    font-size: 12px;
     cursor: pointer;
     padding: 0 2px;
     line-height: 1;
     margin-left: auto;
-    opacity: 0.4;
+    opacity: 0.25;
   }
-  .del-btn:hover { opacity: 1; filter: sepia(1) saturate(5) hue-rotate(300deg); }
-  .del-btn.del-armed { opacity: 1; filter: sepia(1) saturate(5) hue-rotate(300deg); font-size: 12px; letter-spacing: 0.03em; }
+  .del-btn:hover { opacity: 1; }
+  .del-btn.del-armed { opacity: 1; letter-spacing: 0.03em; }
 
   /* ── Annual + PBs ── */
   .annual-header {
