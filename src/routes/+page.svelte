@@ -244,7 +244,7 @@
 
   let typeFilter = $state('run');
   let typePicked = $state(false);
-  const TYPE_CYCLE = ['run', 'cycle', 'gym', 'all'];
+  const TYPE_CYCLE = ['run', 'cycle', 'gym'];
   function cycleType() { typeFilter = TYPE_CYCLE[(TYPE_CYCLE.indexOf(typeFilter) + 1) % TYPE_CYCLE.length]; typePicked = true; }
   let typeColor = $derived(typeFilter === 'cycle' ? T.cycle : typeFilter === 'gym' ? T.gym : typeFilter === 'all' ? T.tx1 : T.run);
   let typeEmoji = $derived({ run: '👟', cycle: '🚴', gym: '🏋️', all: '∞' }[typeFilter]);
@@ -290,25 +290,27 @@
   }
 
   // ── Weekly chart ──────────────────────────────────────────
-  let chartView = $derived(typeFilter === 'cycle' ? 'cycle' : 'run');
+  let chartView = $derived(typeFilter === 'cycle' ? 'cycle' : typeFilter === 'gym' ? 'gym' : 'run');
   let chartWeeks = $derived.by(() => {
     const weeks = [];
     for (let i = 11; i >= 0; i--) {
       const ws = new Date(weekStart.getTime() - i * 7 * 86400000);
       const we = new Date(ws.getTime() + 7 * 86400000);
-      const miles = activities
-        .filter(a => {
-          const d = new Date(a.date + 'T00:00:00');
-          return d >= ws && d < we && (a.type ?? 'run') === chartView;
-        })
-        .reduce((s, a) => s + (a.distance || 0), 0);
+      const matching = activities.filter(a => {
+        const d = new Date(a.date + 'T00:00:00');
+        return d >= ws && d < we && (a.type ?? 'run') === chartView;
+      });
+      const miles = typeFilter === 'gym' ? 0 : +matching.reduce((s, a) => s + (a.distance || 0), 0).toFixed(1);
+      const secs  = typeFilter === 'gym' ? matching.reduce((s, a) => s + parseSecs(a.duration), 0) : 0;
       const label = `${ws.getDate()}/${ws.getMonth() + 1}`;
-      weeks.push({ miles: +miles.toFixed(1), label, isCurrent: i === 0 });
+      weeks.push({ miles, secs, label, isCurrent: i === 0 });
     }
     return weeks;
   });
 
-  let maxMiles = $derived(Math.max(...chartWeeks.map(w => w.miles), 1));
+  let maxMiles = $derived(typeFilter === 'gym'
+    ? Math.max(...chartWeeks.map(w => w.secs), 1)
+    : Math.max(...chartWeeks.map(w => w.miles), 1));
 
   const SVG_H = 140, PAD_X = 28, PAD_Y = 10;
   let chartWidth = $state(300);
@@ -319,13 +321,17 @@
   let chartPoints = $derived.by(() => {
     const usableW = chartWidth - PAD_X - 8;
     const usableH = SVG_H - PAD_Y * 2;
-    return chartWeeks.map((week, i) => ({
-      x: PAD_X + (i / (chartWeeks.length - 1)) * usableW,
-      y: week.miles > 0 ? PAD_Y + (1 - week.miles / maxMiles) * usableH : PAD_Y + usableH,
-      miles: week.miles,
-      label: week.label,
-      isCurrent: week.isCurrent
-    }));
+    return chartWeeks.map((week, i) => {
+      const val = typeFilter === 'gym' ? week.secs : week.miles;
+      return {
+        x: PAD_X + (i / (chartWeeks.length - 1)) * usableW,
+        y: val > 0 ? PAD_Y + (1 - val / maxMiles) * usableH : PAD_Y + usableH,
+        miles: week.miles,
+        secs: week.secs,
+        label: week.label,
+        isCurrent: week.isCurrent
+      };
+    });
   });
 
   let polylinePoints = $derived(chartPoints.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' '));
@@ -336,7 +342,10 @@
     return `M ${chartPoints.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ')} L ${chartPoints.at(-1).x.toFixed(1)},${bottom} L ${chartPoints[0].x.toFixed(1)},${bottom} Z`;
   });
 
-  let yTicks = $derived([
+  let yTicks = $derived(typeFilter === 'gym' ? [
+    { label: `${Math.round(maxMiles / 3600)}h`, y: PAD_Y },
+    { label: `${Math.round(maxMiles / 2 / 3600)}h`, y: PAD_Y + (SVG_H - PAD_Y * 2) / 2 },
+  ] : [
     { label: `${(maxMiles * kmFactor).toFixed(0)}`, y: PAD_Y },
     { label: `${(maxMiles / 2 * kmFactor).toFixed(0)}`, y: PAD_Y + (SVG_H - PAD_Y * 2) / 2 },
   ]);
@@ -562,7 +571,7 @@
 
   // ── Annual totals ─────────────────────────────────────────
   const currentYear = today.getFullYear();
-  let annualView = $derived(typeFilter === 'cycle' ? 'cycle' : 'run');
+  let annualView = $derived(typeFilter === 'cycle' ? 'cycle' : typeFilter === 'gym' ? 'gym' : 'run');
 
   let yearTypedActivities = $derived(
     activities.filter(a => a.date.startsWith(String(currentYear)) && (a.type ?? 'run') === annualView)
@@ -633,7 +642,7 @@
 <div class="page" class:matrix-active={theme === 'matrix'} class:vapor-active={theme === 'vapor'} style={themeStyle}>
   <div class="header">
     <div>
-      <h1>{#key typeFilter}<span class="title-sport type-anim-{typeFilter}" style="color: {typeColor}; --glow: {typeColor}">{typeFilter}</span>{/key}.dash</h1>
+      <h1>{#key typeFilter}<span class="title-sport type-anim-{typeFilter}" style="--glow: {typeColor}"><span style="color: {typeColor}">{typeFilter}</span>.dash</span>{/key}</h1>
       <p class="subtitle">activity log</p>
     </div>
     <div class="header-controls">
@@ -749,14 +758,16 @@
   {/if}
 
   <!-- This week stats -->
-  <div class="stats-row">
+  <div class="stats-row" style="--c-active: {typeColor}">
     <div class="card-label" style="margin-bottom: 14px">this week</div>
     <div class="stats-items">
+      {#if typeFilter !== 'gym'}
       <div class="stat">
         <div class="stat-value">{(weekMiles * kmFactor).toFixed(1)}</div>
         <div class="stat-label">{unit} {typeFilter === 'cycle' ? 'cycling' : 'running'}</div>
       </div>
       <div class="divider"></div>
+      {/if}
       <div class="stat">
         <div class="stat-value">
           {#if weekSecs > 0}
@@ -774,10 +785,14 @@
   </div>
 
   <!-- Weekly distance chart -->
-  <div class="card">
+  <div class="card" style="--c-active: {typeColor}">
     <div class="card-header">
-      <span class="card-label">weekly {chartView === 'run' ? 'running' : 'cycling'} distance</span>
-      {#if chartWeeks.at(-1)?.miles > 0}<span class="card-value">{(chartWeeks.at(-1).miles * kmFactor).toFixed(1)} {unit} this week</span>{/if}
+      <span class="card-label">{typeFilter === 'gym' ? 'weekly workout time' : `weekly ${chartView === 'run' ? 'running' : 'cycling'} distance`}</span>
+      {#if typeFilter === 'gym'}
+        {#if chartWeeks.at(-1)?.secs > 0}<span class="card-value" style="color: {typeColor}">{Math.round(chartWeeks.at(-1).secs / 3600)}h this week</span>{/if}
+      {:else}
+        {#if chartWeeks.at(-1)?.miles > 0}<span class="card-value" style="color: {typeColor}">{(chartWeeks.at(-1).miles * kmFactor).toFixed(1)} {unit} this week</span>{/if}
+      {/if}
     </div>
     <div class="chart-container" bind:clientWidth={chartWidth}>
       <svg
@@ -811,11 +826,11 @@
           />
         {/if}
         {#each chartPoints as pt, i}
-          {#if pt.miles > 0}
+          {#if (typeFilter === 'gym' ? pt.secs : pt.miles) > 0}
             <circle
               cx={pt.x} cy={pt.y}
               r={i === hoveredIdx ? 4 : pt.isCurrent ? 3.5 : 2.5}
-              style="fill: var(--c-run)"
+              style="fill: {ACTIVITY_COLORS[chartView]}"
               fill-opacity={i === hoveredIdx || pt.isCurrent ? 1 : 0.65}
             />
           {/if}
@@ -824,9 +839,9 @@
           <text x={pt.x} y={SVG_H + 12} style="fill: var(--tx2)" font-size="9" text-anchor="middle">{pt.label}</text>
         {/each}
       </svg>
-      {#if hoveredIdx !== null && chartPoints[hoveredIdx]?.miles > 0}
+      {#if hoveredIdx !== null && (typeFilter === 'gym' ? chartPoints[hoveredIdx]?.secs > 0 : chartPoints[hoveredIdx]?.miles > 0)}
         <div class="chart-tooltip" style="left: {chartPoints[hoveredIdx].x}px; top: {chartPoints[hoveredIdx].y - 30}px">
-          {(chartPoints[hoveredIdx].miles * kmFactor).toFixed(1)} {unit}
+          {typeFilter === 'gym' ? `${Math.round(chartPoints[hoveredIdx].secs / 3600)}h` : `${(chartPoints[hoveredIdx].miles * kmFactor).toFixed(1)} ${unit}`}
         </div>
       {/if}
     </div>
@@ -838,6 +853,7 @@
       <span class="card-label" style="margin-bottom: 0">{currentYear} totals</span>
     </div>
     <div class="annual-grid" style="--av:{ACTIVITY_COLORS[annualView]}">
+      {#if typeFilter !== 'gym'}
       <div class="annual-stat">
         <div class="annual-val">{fmtK(yearDist * kmFactor)}</div>
         <div class="annual-lbl">{unit} {annualView === 'run' ? 'running' : 'cycling'}</div>
@@ -850,6 +866,7 @@
         <div class="annual-val">↑&nbsp;{fmtK(unit === 'km' ? yearElev : yearElev * 3.28084)}</div>
         <div class="annual-lbl">{unit === 'km' ? 'm' : 'ft'} elevation</div>
       </div>
+      {/if}
       <div class="annual-stat">
         <div class="annual-val">
           {#if yearTotalSecs > 0}
@@ -863,6 +880,7 @@
         <div class="annual-lbl">workouts</div>
       </div>
     </div>
+    {#if typeFilter !== 'gym'}
     <div class="pb-row">
       <span class="pb-label">all-time PBs</span>
       {#each pbTimes as pb}
@@ -871,11 +889,13 @@
             class="pb-est"
             onmouseenter={() => hoveredPb = pb.label}
             onmouseleave={() => hoveredPb = null}
+
             onclick={() => hoveredPb = hoveredPb === pb.label ? null : pb.label}
           >est.{#if hoveredPb === pb.label}<span class="pb-tooltip">{pb.tooltip}</span>{/if}</button>{/if}
         </span>
       {/each}
     </div>
+    {/if}
   </div>
 
   <!-- Recent activity -->
@@ -946,7 +966,7 @@
   {/if}
 
   <!-- Calendar -->
-  <div class="card">
+  <div class="card" style="--c-active: {typeColor}">
     <div class="cal-nav">
       <button class="nav-btn" onclick={prevMonth}>‹</button>
       <span class="cal-title">{MONTHS[calMonth]} {calYear}</span>
@@ -1237,9 +1257,9 @@
   .stats-items { display: flex; }
   .stat { flex: 1; text-align: center; }
   .stat-value {
+    color: var(--c-active, var(--c-run));
     font-size: 32px;
     font-weight: 500;
-    color: var(--c-run);
     line-height: 1;
     margin-bottom: 4px;
   }
@@ -1307,7 +1327,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    border-top: 1px solid color-mix(in srgb, var(--c-run) 15%, transparent);
+    border-top: 1px solid color-mix(in srgb, var(--c-active, var(--c-run)) 15%, transparent);
     justify-content: center;
     gap: 3px;
     font-size: 13px;
@@ -1353,7 +1373,7 @@
     border-radius: 4px;
     padding: 3px 8px;
     font-size: 11px;
-    color: var(--c-run);
+    color: var(--c-active, var(--c-run));
     pointer-events: none;
     transform: translateX(-50%);
     white-space: nowrap;
