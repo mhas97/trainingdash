@@ -20,6 +20,7 @@
     `--tx0:${T.tx0};--tx1:${T.tx1};--tx2:${T.tx2};`
   );
   $effect(() => { localStorage.setItem('theme', theme); });
+  $effect(() => { document.body.style.background = T.bg; });
 
   const _stored = JSON.parse(localStorage.getItem('activities') ?? 'null');
   let _userActivities = $state(_stored ?? []);
@@ -913,6 +914,8 @@
     min-height: 100vh;
     padding: 2rem;
     padding-bottom: max(2rem, calc(2rem + env(safe-area-inset-bottom)));
+    max-width: 860px;
+    margin: 0 auto;
   }
 
   h1 {
