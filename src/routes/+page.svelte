@@ -317,7 +317,7 @@
     </div>
   </div>
 
-  {#if showForm}
+{#if showForm}
   <div class="form-card">
     <div class="form-row">
       <label>
@@ -392,58 +392,6 @@
   </div>
   <div class="section-label">this week</div>
 
-  <!-- Calendar -->
-  <div class="card">
-    <div class="cal-nav">
-      <button class="nav-btn" onclick={prevMonth}>‹</button>
-      <span class="cal-title">{MONTHS[calMonth]} {calYear}</span>
-      <button class="nav-btn" onclick={nextMonth}>›</button>
-    </div>
-    <div class="cal-grid">
-      {#each DAYS as label}
-        <div class="cal-label">{label}</div>
-      {/each}
-      {#each calDays as day}
-        {#if day === null}
-          <div></div>
-        {:else}
-          {@const ds = toDateStr(calYear, calMonth, day)}
-          {@const types = activityByDate[ds]}
-          <div class="cal-day" class:is-today={ds === todayStr}
-            role="gridcell"
-            tabindex="0"
-            onmouseenter={() => hoveredDay = ds}
-            onmouseleave={() => hoveredDay = null}
-          >
-            <span>{day}</span>
-            {#if types}
-              <div class="cal-dots">
-                {#each ['run','gym','cycle'] as t}
-                  {#if types.has(t)}
-                    <div class="cal-dot" style="background: {ACTIVITY_COLORS[t]}"></div>
-                  {/if}
-                {/each}
-              </div>
-            {/if}
-            {#if hoveredDay === ds}
-              {@const dayActivities = activities.filter(a => a.date === ds)}
-              {#if dayActivities.length > 0}
-                <div class="cal-tooltip">
-                  {#each dayActivities as act}
-                    <span class="cal-tip-type" style="color: {ACTIVITY_COLORS[act.type]}">{act.type}</span>
-                    <span>{act.distance != null ? `${(act.distance * kmFactor).toFixed(1)}${unit}` : '—'}</span>
-                    <span>{act.duration}</span>
-                    <span class="cal-tip-notes">{act.notes || ''}</span>
-                  {/each}
-                </div>
-              {/if}
-            {/if}
-          </div>
-        {/if}
-      {/each}
-    </div>
-  </div>
-
   <!-- Weekly distance chart (runs) -->
   <div class="card">
     <div class="card-header">
@@ -498,6 +446,58 @@
           {(chartPoints[hoveredIdx].miles * kmFactor).toFixed(1)} {unit}
         </div>
       {/if}
+    </div>
+  </div>
+
+  <!-- Calendar -->
+  <div class="card">
+    <div class="cal-nav">
+      <button class="nav-btn" onclick={prevMonth}>‹</button>
+      <span class="cal-title">{MONTHS[calMonth]} {calYear}</span>
+      <button class="nav-btn" onclick={nextMonth}>›</button>
+    </div>
+    <div class="cal-grid">
+      {#each DAYS as label}
+        <div class="cal-label">{label}</div>
+      {/each}
+      {#each calDays as day}
+        {#if day === null}
+          <div></div>
+        {:else}
+          {@const ds = toDateStr(calYear, calMonth, day)}
+          {@const types = activityByDate[ds]}
+          <div class="cal-day" class:is-today={ds === todayStr}
+            role="gridcell"
+            tabindex="0"
+            onmouseenter={() => hoveredDay = ds}
+            onmouseleave={() => hoveredDay = null}
+          >
+            <span>{day}</span>
+            {#if types}
+              <div class="cal-dots">
+                {#each ['run','gym','cycle'] as t}
+                  {#if types.has(t)}
+                    <div class="cal-dot" style="background: {ACTIVITY_COLORS[t]}"></div>
+                  {/if}
+                {/each}
+              </div>
+            {/if}
+            {#if hoveredDay === ds}
+              {@const dayActivities = activities.filter(a => a.date === ds)}
+              {#if dayActivities.length > 0}
+                <div class="cal-tooltip">
+                  {#each dayActivities as act}
+                    <span class="cal-tip-type" style="color: {ACTIVITY_COLORS[act.type]}">{act.type}</span>
+                    <span>{act.distance != null ? `${(act.distance * kmFactor).toFixed(1)}${unit}` : '—'}</span>
+                    <span>{act.duration}</span>
+                    <span class="cal-tip-notes">{act.notes || ''}</span>
+                  {/each}
+                </div>
+              {/if}
+            {/if}
+          </div>
+        {/if}
+      {/each}
     </div>
   </div>
 
@@ -637,7 +637,6 @@
   }
   .log-btn:hover { border-color: #555; }
   .example-btn.active { border-color: #ff6b35; color: #ff6b35; }
-
   /* ── Form ── */
   .form-card {
     background: #131318;
