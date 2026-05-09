@@ -2,11 +2,12 @@
   import { EXAMPLE_ACTIVITIES } from '$lib/exampleData.js';
 
   const THEMES = {
-    dark:   { bg: '#0d0d0f', card: '#131318', card2: '#1a1a20', hover: '#1e1e24', rb: '#1c1c1c', b1: '#222',    b2: '#2a2a2a', b3: '#333',    track: '#444',    run: '#ff6b35', gym: '#b44fff', cycle: '#00e5ff' },
-    slate:  { bg: '#0b0c14', card: '#111420', card2: '#181b2e', hover: '#1e2138', rb: '#1a1d30', b1: '#1e2035', b2: '#252840', b3: '#2d3055', track: '#3a3d5c', run: '#6366f1', gym: '#f472b6', cycle: '#34d399' },
-    forest: { bg: '#080d09', card: '#0e160f', card2: '#131e14', hover: '#182419', rb: '#162017', b1: '#1a2e1b', b2: '#1f351f', b3: '#263d27', track: '#2d4a2e', run: '#4ade80', gym: '#facc15', cycle: '#38bdf8' },
-    amber:  { bg: '#0f0d0a', card: '#171410', card2: '#1e1a14', hover: '#23201a', rb: '#201e18', b1: '#2a2218', b2: '#322a1e', b3: '#3d3226', track: '#4a4030', run: '#f59e0b', gym: '#f87171', cycle: '#a78bfa' },
-    mono:   { bg: '#0a0a0a', card: '#111111', card2: '#181818', hover: '#1e1e1e', rb: '#1a1a1a', b1: '#222222', b2: '#2a2a2a', b3: '#333333', track: '#444444', run: '#e5e5e5', gym: '#888888', cycle: '#cccccc' },
+    light:  { bg: '#f5f5f3', card: '#ffffff', card2: '#ebebea', hover: '#e2e2e0', rb: '#d8d8d6', b1: '#d8d8d6', b2: '#c8c8c6', b3: '#b0b0ae', track: '#a0a0a0', run: '#e05a1a', gym: '#8833cc', cycle: '#0088aa', tx0: '#111111', tx1: '#555555', tx2: '#999999' },
+    dark:   { bg: '#0d0d0f', card: '#131318', card2: '#1a1a20', hover: '#1e1e24', rb: '#1c1c1c', b1: '#222',    b2: '#2a2a2a', b3: '#333',    track: '#444',    run: '#ff6b35', gym: '#b44fff', cycle: '#00e5ff', tx0: '#ffffff', tx1: '#aaaaaa', tx2: '#666666' },
+    slate:  { bg: '#0b0c14', card: '#111420', card2: '#181b2e', hover: '#1e2138', rb: '#1a1d30', b1: '#1e2035', b2: '#252840', b3: '#2d3055', track: '#3a3d5c', run: '#6366f1', gym: '#f472b6', cycle: '#34d399', tx0: '#ffffff', tx1: '#aaaaaa', tx2: '#666666' },
+    forest: { bg: '#080d09', card: '#0e160f', card2: '#131e14', hover: '#182419', rb: '#162017', b1: '#1a2e1b', b2: '#1f351f', b3: '#263d27', track: '#2d4a2e', run: '#4ade80', gym: '#facc15', cycle: '#38bdf8', tx0: '#ffffff', tx1: '#aaaaaa', tx2: '#666666' },
+    amber:  { bg: '#0f0d0a', card: '#171410', card2: '#1e1a14', hover: '#23201a', rb: '#201e18', b1: '#2a2218', b2: '#322a1e', b3: '#3d3226', track: '#4a4030', run: '#f59e0b', gym: '#f87171', cycle: '#a78bfa', tx0: '#ffffff', tx1: '#aaaaaa', tx2: '#666666' },
+    mono:   { bg: '#0a0a0a', card: '#111111', card2: '#181818', hover: '#1e1e1e', rb: '#1a1a1a', b1: '#222222', b2: '#2a2a2a', b3: '#333333', track: '#444444', run: '#e5e5e5', gym: '#888888', cycle: '#cccccc', tx0: '#ffffff', tx1: '#aaaaaa', tx2: '#666666' },
   };
 
   let theme = $state(localStorage.getItem('theme') ?? 'dark');
@@ -15,7 +16,8 @@
   let themeStyle = $derived(
     `--bg:${T.bg};--card:${T.card};--card2:${T.card2};--hover:${T.hover};` +
     `--rb:${T.rb};--b1:${T.b1};--b2:${T.b2};--b3:${T.b3};--track:${T.track};` +
-    `--c-run:${T.run};--c-gym:${T.gym};--c-cycle:${T.cycle};`
+    `--c-run:${T.run};--c-gym:${T.gym};--c-cycle:${T.cycle};` +
+    `--tx0:${T.tx0};--tx1:${T.tx1};--tx2:${T.tx2};`
   );
   $effect(() => { localStorage.setItem('theme', theme); });
 
@@ -583,7 +585,7 @@
       >
         {#each yTicks as tick}
           <line x1={PAD_X} y1={tick.y} x2={chartWidth - 8} y2={tick.y} style="stroke: var(--hover)" stroke-width="1" />
-          <text x={PAD_X - 5} y={tick.y} fill="#555" font-size="9" text-anchor="end" dominant-baseline="middle">{tick.label}</text>
+          <text x={PAD_X - 5} y={tick.y} style="fill: var(--tx2)" font-size="9" text-anchor="end" dominant-baseline="middle">{tick.label}</text>
         {/each}
         <path d={areaPath} style="fill: color-mix(in srgb, var(--c-run) 7%, transparent)" />
         <polyline
@@ -612,7 +614,7 @@
           {/if}
         {/each}
         {#each chartPoints as pt}
-          <text x={pt.x} y={SVG_H + 12} fill="#555" font-size="9" text-anchor="middle">{pt.label}</text>
+          <text x={pt.x} y={SVG_H + 12} style="fill: var(--tx2)" font-size="9" text-anchor="middle">{pt.label}</text>
         {/each}
       </svg>
       {#if hoveredIdx !== null && chartPoints[hoveredIdx]?.miles > 0}
@@ -799,13 +801,13 @@
   h1 {
     font-size: 40px;
     font-weight: 500;
-    color: #fff;
+    color: var(--tx0);
     margin-bottom: 4px;
   }
 
   .subtitle {
     font-size: 15px;
-    color: #888;
+    color: var(--tx2);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-bottom: 1.75rem;
@@ -833,7 +835,7 @@
     gap: 8px;
     background: none;
     border: none;
-    color: #ccc;
+    color: var(--tx1);
     font-size: 12px;
     padding: 7px 12px;
     cursor: pointer;
@@ -843,8 +845,8 @@
     letter-spacing: 0.04em;
     width: 100%;
   }
-  .theme-option:hover { background: var(--b1); color: #fff; }
-  .theme-option.active { color: #fff; }
+  .theme-option:hover { background: var(--b1); color: var(--tx0); }
+  .theme-option.active { color: var(--tx0); }
   .theme-dot {
     width: 10px;
     height: 10px;
@@ -857,13 +859,13 @@
     background: none;
     border: 1px solid var(--b3);
     border-radius: 6px;
-    color: #fff;
+    color: var(--tx0);
     font-size: 13px;
     padding: 7px 14px;
     cursor: pointer;
     letter-spacing: 0.04em;
   }
-  .log-btn:hover { border-color: #555; }
+  .log-btn:hover { border-color: var(--tx2); }
   .example-btn.active { border-color: var(--c-run); color: var(--c-run); }
   .import-overlay {
     position: fixed;
@@ -890,7 +892,7 @@
   .import-menu button {
     background: none;
     border: none;
-    color: #ccc;
+    color: var(--tx1);
     font-size: 12px;
     padding: 7px 12px;
     cursor: pointer;
@@ -899,12 +901,12 @@
     font-family: inherit;
     letter-spacing: 0.04em;
   }
-  .import-menu button:hover { background: var(--b1); color: #fff; }
+  .import-menu button:hover { background: var(--b1); color: var(--tx0); }
   .import-msg {
     background: var(--card);
     border: 1px solid var(--b2);
     border-radius: 8px;
-    color: #aaa;
+    color: var(--tx1);
     font-size: 12px;
     padding: 8px 14px;
     margin-bottom: 12px;
@@ -928,7 +930,7 @@
   label { display: flex; flex-direction: column; gap: 5px; }
   label span {
     font-size: 11px;
-    color: #888;
+    color: var(--tx2);
     text-transform: uppercase;
     letter-spacing: 0.08em;
   }
@@ -936,7 +938,7 @@
     background: var(--bg);
     border: 1px solid var(--b2);
     border-radius: 6px;
-    color: #fff;
+    color: var(--tx0);
     font-size: 14px;
     padding: 7px 10px;
     outline: none;
@@ -954,7 +956,7 @@
     flex: 1;
     background: none;
     border: none;
-    color: #555;
+    color: var(--tx2);
     font-size: 13px;
     cursor: pointer;
     font-family: inherit;
@@ -976,7 +978,7 @@
     letter-spacing: 0.04em;
   }
   .submit-btn:hover:not(:disabled) { opacity: 0.85; }
-  .submit-btn:disabled { background: var(--b1); color: #555; cursor: default; }
+  .submit-btn:disabled { background: var(--b1); color: var(--tx2); cursor: default; }
 
   /* ── Stats ── */
   .stats-row {
@@ -999,7 +1001,7 @@
   }
   .stat-label {
     font-size: 11px;
-    color: #999;
+    color: var(--tx2);
     text-transform: uppercase;
     letter-spacing: 0.08em;
   }
@@ -1021,7 +1023,7 @@
   }
   .card-label {
     font-size: 11px;
-    color: #888;
+    color: var(--tx2);
     text-transform: uppercase;
     letter-spacing: 0.1em;
     margin-bottom: 14px;
@@ -1035,22 +1037,22 @@
     justify-content: space-between;
     margin-bottom: 14px;
   }
-  .cal-title { font-size: 15px; color: #fff; font-weight: 500; }
+  .cal-title { font-size: 15px; color: var(--tx0); font-weight: 500; }
   .nav-btn {
     background: none;
     border: none;
-    color: #555;
+    color: var(--tx2);
     font-size: 22px;
     cursor: pointer;
     padding: 0 6px;
     line-height: 1;
   }
-  .nav-btn:hover { color: #fff; }
+  .nav-btn:hover { color: var(--tx0); }
   .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
   .cal-label {
     text-align: center;
     font-size: 11px;
-    color: #aaa;
+    color: var(--tx2);
     text-transform: uppercase;
     padding-bottom: 6px;
   }
@@ -1064,10 +1066,10 @@
     justify-content: center;
     gap: 3px;
     font-size: 13px;
-    color: #ccc;
+    color: var(--tx1);
     border-radius: 8px;
   }
-  .cal-day.is-today { color: #fff; border: 1px solid var(--b3); }
+  .cal-day.is-today { color: var(--tx0); border: 1px solid var(--b3); }
   .cal-dots { display: flex; gap: 2px; }
   .cal-tooltip {
     position: absolute;
@@ -1087,10 +1089,10 @@
     row-gap: 5px;
     align-items: center;
     font-size: 12px;
-    color: #aaa;
+    color: var(--tx1);
   }
   .cal-tip-type { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; min-width: 36px; }
-  .cal-tip-notes { color: #666; }
+  .cal-tip-notes { color: var(--tx2); }
   .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
 
   /* ── Chart ── */
@@ -1121,7 +1123,7 @@
     background: none;
     border: 1px solid var(--b2);
     border-radius: 4px;
-    color: #555;
+    color: var(--tx2);
     font-size: 11px;
     padding: 3px 8px;
     cursor: pointer;
@@ -1129,8 +1131,8 @@
     letter-spacing: 0.04em;
   }
   .filter-tabs button.active {
-    border-color: var(--tab-color, #666);
-    color: var(--tab-color, #fff);
+    border-color: var(--tab-color, var(--tx2));
+    color: var(--tab-color, var(--tx0));
   }
   .runs-list { display: flex; flex-direction: column; }
   .runs-scroll {
@@ -1160,14 +1162,14 @@
   }
   .run-row:last-child { border-bottom: none; }
   .run-date, .run-type, .run-dist, .run-pace, .run-hr, .run-dur, .run-elev {
-    color: #aaa;
+    color: var(--tx1);
     flex: 0 0 68px;
     width: 68px;
     overflow: hidden;
     white-space: nowrap;
   }
   .run-type { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
-  .run-notes { color: #aaa; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .run-notes { color: var(--tx1); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .del-btn {
     background: none;
     border: none;
@@ -1198,14 +1200,14 @@
   .annual-toggle button {
     background: none;
     border: none;
-    color: #555;
+    color: var(--tx2);
     font-size: 11px;
     padding: 4px 10px;
     cursor: pointer;
     font-family: inherit;
     letter-spacing: 0.04em;
   }
-  .annual-toggle button.active { background: var(--hover); color: var(--tab-color, #fff); }
+  .annual-toggle button.active { background: var(--hover); color: var(--tab-color, var(--tx0)); }
   .annual-grid { display: flex; margin-bottom: 14px; }
   .annual-stat {
     flex: 1;
@@ -1215,8 +1217,8 @@
   }
   .annual-stat:first-child { padding-left: 0; }
   .annual-stat:last-child { border-right: none; padding-right: 0; }
-  .annual-val { font-size: 22px; font-weight: 500; color: #fff; line-height: 1; margin-bottom: 4px; }
-  .annual-lbl { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.08em; }
+  .annual-val { font-size: 22px; font-weight: 500; color: var(--tx0); line-height: 1; margin-bottom: 4px; }
+  .annual-lbl { font-size: 10px; color: var(--tx2); text-transform: uppercase; letter-spacing: 0.08em; }
   .pb-row {
     display: flex;
     align-items: center;
@@ -1225,18 +1227,18 @@
     padding-top: 12px;
     flex-wrap: wrap;
   }
-  .pb-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.1em; }
-  .pb-item { font-size: 12px; color: #bbb; }
-  .pb-key { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.06em; margin-right: 5px; }
+  .pb-label { font-size: 10px; color: var(--tx2); text-transform: uppercase; letter-spacing: 0.1em; }
+  .pb-item { font-size: 12px; color: var(--tx1); }
+  .pb-key { font-size: 10px; color: var(--tx2); text-transform: uppercase; letter-spacing: 0.06em; margin-right: 5px; }
   .pb-empty { color: var(--track); }
   .pb-est {
     font-size: 9px;
-    color: #555;
+    color: var(--tx2);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     margin-left: 3px;
     cursor: help;
-    border-bottom: 1px dotted #555;
+    border-bottom: 1px dotted var(--tx2);
   }
 
   @media (max-width: 600px) {
