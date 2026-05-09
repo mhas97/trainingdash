@@ -291,10 +291,17 @@
 
   // ── Weekly chart ──────────────────────────────────────────
   let chartView = $derived(typeFilter === 'cycle' ? 'cycle' : typeFilter === 'gym' ? 'gym' : 'run');
+  let chartOffset = $state(0);
+  const CHART_WEEKS = 8;
+  const MAX_CHART_OFFSET = 96; // 104 weeks total - 8 visible
+  let touchPanStart = $state(null);
+  let touchMode = $state(null);
+
   let chartWeeks = $derived.by(() => {
     const weeks = [];
-    for (let i = 11; i >= 0; i--) {
-      const ws = new Date(weekStart.getTime() - i * 7 * 86400000);
+    for (let i = CHART_WEEKS - 1; i >= 0; i--) {
+      const weeksBack = i + chartOffset;
+      const ws = new Date(weekStart.getTime() - weeksBack * 7 * 86400000);
       const we = new Date(ws.getTime() + 7 * 86400000);
       const matching = activities.filter(a => {
         const d = new Date(a.date + 'T00:00:00');
@@ -302,8 +309,11 @@
       });
       const miles = typeFilter === 'gym' ? 0 : +matching.reduce((s, a) => s + (a.distance || 0), 0).toFixed(1);
       const secs  = typeFilter === 'gym' ? matching.reduce((s, a) => s + parseSecs(a.duration), 0) : 0;
-      const label = `${ws.getDate()}/${ws.getMonth() + 1}`;
-      weeks.push({ miles, secs, label, isCurrent: i === 0 });
+      const year = ws.getFullYear();
+      const day = String(ws.getDate()).padStart(2, '0');
+      const mon = ws.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
+      const label = `${day}/${mon}`;
+      weeks.push({ miles, secs, label, year, isCurrent: weeksBack === 0 });
     }
     return weeks;
   });
@@ -314,6 +324,7 @@
 
   const SVG_H = 140, PAD_X = 28, PAD_Y = 10;
   let chartWidth = $state(300);
+  let chartLabelSize = $derived(chartWidth > 600 ? 11 : chartWidth > 380 ? 10 : 9);
   let hoveredIdx = $state(null);
   let unit = $state('km');
   let kmFactor = $derived(unit === 'km' ? 1.60934 : 1);
@@ -329,6 +340,7 @@
         miles: week.miles,
         secs: week.secs,
         label: week.label,
+        year: week.year,
         isCurrent: week.isCurrent
       };
     });
@@ -360,14 +372,32 @@
     hoveredIdx = closest;
   }
 
-  function handleMouseMove(e) {
-    pickClosest(e.clientX, e.currentTarget.getBoundingClientRect());
+  function handleMouseMove(e) { pickClosest(e.clientX, e.currentTarget.getBoundingClientRect()); }
+  function handleMouseLeave() { hoveredIdx = null; }
+  function handleWheel(e) {
+    e.preventDefault();
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    chartOffset = Math.max(0, Math.min(MAX_CHART_OFFSET, chartOffset + (delta > 0 ? 1 : -1)));
+    hoveredIdx = null;
   }
 
+  function handleTouchStart(e) {
+    touchPanStart = { x: e.touches[0].clientX, offset: chartOffset };
+    touchMode = null;
+  }
   function handleTouchMove(e) {
     e.preventDefault();
-    pickClosest(e.touches[0].clientX, e.currentTarget.getBoundingClientRect());
+    const dx = e.touches[0].clientX - touchPanStart.x;
+    if (touchMode === null) touchMode = Math.abs(dx) > 20 ? 'pan' : 'scrub';
+    if (touchMode === 'pan') {
+      const weeksPer = chartWidth / CHART_WEEKS;
+      chartOffset = Math.max(0, Math.min(MAX_CHART_OFFSET, Math.round(touchPanStart.offset - dx / weeksPer)));
+      hoveredIdx = null;
+    } else {
+      pickClosest(e.touches[0].clientX, e.currentTarget.getBoundingClientRect());
+    }
   }
+  function handleTouchEnd() { hoveredIdx = null; touchMode = null; }
 
   // ── Recent activity ───────────────────────────────────────
   let pendingDelete = $state(null);
@@ -794,20 +824,35 @@
         {#if chartWeeks.at(-1)?.miles > 0}<span class="card-value" style="color: {typeColor}">{(chartWeeks.at(-1).miles * kmFactor).toFixed(1)} {unit} this week</span>{/if}
       {/if}
     </div>
-    <div class="chart-container" bind:clientWidth={chartWidth}>
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex a11y_no_noninteractive_element_interactions -->
+    <div class="chart-container" bind:clientWidth={chartWidth}
+      onmousemove={handleMouseMove}
+      onmouseleave={handleMouseLeave}
+      onwheel={handleWheel}
+      ontouchstart={handleTouchStart}
+      ontouchmove={handleTouchMove}
+      ontouchend={handleTouchEnd}
+      style="touch-action: none; cursor: crosshair"
+      role="application"
+      aria-label="Weekly mileage chart"
+      tabindex="0"
+    >
       <svg
-        role="img"
-        aria-label="Weekly mileage chart"
         width={chartWidth}
         height={SVG_H}
-        onmousemove={handleMouseMove}
-        onmouseleave={() => hoveredIdx = null}
-        ontouchmove={handleTouchMove}
-        ontouchend={() => hoveredIdx = null}
       >
+        <defs>
+          <linearGradient id="chartShine" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="white" stop-opacity="0"/>
+            <stop offset="50%"  stop-color="white" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="white" stop-opacity="0"/>
+            <animate attributeName="x1" values="{-chartWidth * 0.2};{chartWidth * 1.05}" dur="3.5s" repeatCount="indefinite"/>
+            <animate attributeName="x2" values="{chartWidth * 0.05};{chartWidth * 1.3}" dur="3.5s" repeatCount="indefinite"/>
+          </linearGradient>
+        </defs>
         {#each yTicks as tick}
           <line x1={PAD_X} y1={tick.y} x2={chartWidth - 8} y2={tick.y} style="stroke: var(--hover)" stroke-width="1" />
-          <text x={PAD_X - 5} y={tick.y} style="fill: var(--tx2)" font-size="9" text-anchor="end" dominant-baseline="middle">{tick.label}</text>
+          <text x={PAD_X - 5} y={tick.y} style="fill: var(--tx2)" font-size="9" font-family="inherit" text-anchor="end" dominant-baseline="middle">{tick.label}</text>
         {/each}
         <path d={areaPath} style="fill: color-mix(in srgb, {ACTIVITY_COLORS[chartView]} 7%, transparent)" />
         <polyline
@@ -816,6 +861,13 @@
           style="stroke: {ACTIVITY_COLORS[chartView]}"
           stroke-width="1.5"
           stroke-opacity="0.5"
+          stroke-linejoin="round"
+        />
+        <polyline
+          points={polylinePoints}
+          fill="none"
+          stroke="url(#chartShine)"
+          stroke-width="2"
           stroke-linejoin="round"
         />
         {#if hoveredIdx !== null}
@@ -836,7 +888,8 @@
           {/if}
         {/each}
         {#each chartPoints as pt}
-          <text x={pt.x} y={SVG_H + 12} style="fill: var(--tx2)" font-size="9" text-anchor="middle">{pt.label}</text>
+          <text x={pt.x} y={SVG_H + 12} style="fill: var(--tx1)" font-size={chartLabelSize} font-family="inherit" text-anchor="middle">{pt.label}</text>
+          <text x={pt.x} y={SVG_H + 22} style="fill: var(--tx1)" font-size={chartLabelSize} font-family="inherit" text-anchor="middle">'{String(pt.year).slice(-2)}</text>
         {/each}
       </svg>
       {#if hoveredIdx !== null && (typeFilter === 'gym' ? chartPoints[hoveredIdx]?.secs > 0 : chartPoints[hoveredIdx]?.miles > 0)}
@@ -1364,8 +1417,8 @@
   .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
 
   /* ── Chart ── */
-  .chart-container { position: relative; padding-bottom: 18px; }
-  .chart-container svg { display: block; overflow: visible; cursor: crosshair; }
+  .chart-container { position: relative; padding-bottom: 28px; }
+  .chart-container svg { display: block; overflow: visible; }
   .chart-tooltip {
     position: absolute;
     background: var(--card2);
