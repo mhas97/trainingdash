@@ -1088,7 +1088,8 @@
     padding: 8px 10px;
     z-index: 20;
     pointer-events: none;
-    white-space: nowrap;
+    white-space: normal;
+    max-width: min(300px, calc(100vw - 2rem));
     display: grid;
     grid-template-columns: 36px 52px 44px auto;
     column-gap: 8px;
@@ -1262,7 +1263,8 @@
     padding: 6px 10px;
     font-size: 11px;
     color: var(--tx1);
-    white-space: nowrap;
+    white-space: normal;
+    max-width: min(240px, calc(100vw - 2rem));
     z-index: 20;
     pointer-events: none;
     letter-spacing: 0;
