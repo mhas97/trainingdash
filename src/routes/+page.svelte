@@ -1281,6 +1281,7 @@
     .header-controls { width: 100%; justify-content: center; margin-bottom: 1rem; }
     .form-row { grid-template-columns: 1fr; }
     .form-row label[style] { grid-column: 1 !important; }
+    .import-menu { left: 0; right: auto; }
     .runs-list { overflow-x: auto; scrollbar-width: none; }
     .runs-list::-webkit-scrollbar { display: none; }
     .runs-inner { min-width: 640px; }
