@@ -802,6 +802,7 @@
     background: var(--bg);
     min-height: 100vh;
     padding: 2rem;
+    padding-bottom: max(2rem, calc(2rem + env(safe-area-inset-bottom)));
   }
 
   h1 {
@@ -1262,7 +1263,8 @@
     padding: 6px 10px;
     font-size: 11px;
     color: var(--tx1);
-    white-space: nowrap;
+    white-space: normal;
+    max-width: min(300px, calc(100vw - 2rem));
     z-index: 20;
     pointer-events: none;
     letter-spacing: 0;
@@ -1270,7 +1272,7 @@
   }
 
   @media (max-width: 600px) {
-    .page { padding: 1rem; }
+    .page { padding: 1rem; padding-bottom: max(1rem, calc(1rem + env(safe-area-inset-bottom))); }
     .header { flex-direction: column; }
     .header-controls { width: 100%; justify-content: center; margin-bottom: 1rem; }
     .form-row { grid-template-columns: 1fr; }
