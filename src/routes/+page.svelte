@@ -616,7 +616,7 @@
             <circle
               cx={pt.x} cy={pt.y}
               r={i === hoveredIdx ? 4 : pt.isCurrent ? 3.5 : 2.5}
-              style="fill: {ACTIVITY_COLORS[chartView]}"
+              style="fill: var(--c-run)"
               fill-opacity={i === hoveredIdx || pt.isCurrent ? 1 : 0.65}
             />
           {/if}
@@ -686,7 +686,7 @@
       <span class="card-label" style="margin-bottom: 0">recent activity</span>
       <div class="filter-tabs">
         <button class:active={filterType === 'all'} onclick={() => filterType = 'all'}>all</button>
-        {#each ['run', 'gym', 'cycle'] as t}
+        {#each ['run', 'cycle', 'gym'] as t}
           <button
             class:active={filterType === t}
             style={filterType === t ? `--tab-color: ${ACTIVITY_COLORS[t]}` : ''}
