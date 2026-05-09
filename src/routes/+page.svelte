@@ -463,10 +463,7 @@
           </div>
         {/if}
       </div>
-      <div class="unit-toggle">
-        <button class:active={unit === 'mi'} onclick={() => unit = 'mi'}>mi</button>
-        <button class:active={unit === 'km'} onclick={() => unit = 'km'}>km</button>
-      </div>
+      <button class="log-btn" onclick={() => unit = unit === 'km' ? 'mi' : 'km'}>{unit}</button>
       <button class="log-btn example-btn" class:active={showExample} onclick={toggleExample}>example</button>
       <input type="file" accept=".gpx" style="display:none" bind:this={gpxInput} onchange={e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => handleGpx(ev.target.result); r.readAsText(f); e.target.value=''; }} />
       <input type="file" accept=".csv" style="display:none" bind:this={csvInput} onchange={e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => handleCsv(ev.target.result); r.readAsText(f); e.target.value=''; }} />
@@ -856,25 +853,6 @@
     flex-shrink: 0;
   }
 
-  .unit-toggle {
-    display: flex;
-    border: 1px solid var(--b3);
-    border-radius: 6px;
-    overflow: hidden;
-  }
-  .unit-toggle button {
-    background: none;
-    border: none;
-    color: #555;
-    font-size: 12px;
-    padding: 6px 10px;
-    cursor: pointer;
-    letter-spacing: 0.04em;
-  }
-  .unit-toggle button.active {
-    background: var(--b1);
-    color: #fff;
-  }
   .log-btn {
     background: none;
     border: 1px solid var(--b3);
