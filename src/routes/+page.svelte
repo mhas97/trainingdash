@@ -561,7 +561,7 @@
     use:matrixRain
   ></canvas>
 {/if}
-<div class="page" style={themeStyle}>
+<div class="page" class:matrix-active={theme === 'matrix'} style={themeStyle}>
   <div class="header">
     <div>
       <h1>run.dash</h1>
@@ -955,6 +955,8 @@
     position: fixed; inset: 0; z-index: 0;
     pointer-events: none;
   }
+  .matrix-active { background: transparent !important; }
+  .matrix-active .card { background: rgba(5,15,6,0.75); backdrop-filter: blur(2px); }
   .page {
     position: relative; z-index: 1;
     background: var(--bg);
