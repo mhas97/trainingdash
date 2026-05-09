@@ -1425,7 +1425,7 @@
     color: var(--tx1);
   }
   .cal-tip-type { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; min-width: 36px; }
-  .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .cal-dot { width: clamp(6px, 1.2vw, 10px); height: clamp(6px, 1.2vw, 10px); border-radius: 50%; }
 
   /* ── Chart ── */
   .chart-container { position: relative; padding-bottom: 28px; }
