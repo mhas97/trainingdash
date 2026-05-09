@@ -364,7 +364,7 @@
 
   function fmtGarminDuration(str) {
     if (!str || str === '--') return null;
-    const parts = str.split(':').map(Number);
+    const parts = str.split(':').map((p, i) => i === 2 ? Math.round(parseFloat(p)) : parseInt(p));
     if (parts.length === 3) {
       if (parts[0] === 0) return `${parts[1]}:${String(parts[2]).padStart(2,'0')}`;
       return `${parts[0]}:${String(parts[1]).padStart(2,'0')}:${String(parts[2]).padStart(2,'0')}`;
