@@ -243,8 +243,9 @@
   );
 
   let typeFilter = $state('run');
+  let typePicked = $state(false);
   const TYPE_CYCLE = ['run', 'cycle', 'gym', 'all'];
-  function cycleType() { typeFilter = TYPE_CYCLE[(TYPE_CYCLE.indexOf(typeFilter) + 1) % TYPE_CYCLE.length]; }
+  function cycleType() { typeFilter = TYPE_CYCLE[(TYPE_CYCLE.indexOf(typeFilter) + 1) % TYPE_CYCLE.length]; typePicked = true; }
   let typeColor = $derived(typeFilter === 'cycle' ? T.cycle : typeFilter === 'gym' ? T.gym : typeFilter === 'all' ? T.tx1 : T.run);
   let typeEmoji = $derived({ run: '👟', cycle: '🚴', gym: '🏋️', all: '∞' }[typeFilter]);
   let weekMiles = $derived(
@@ -400,7 +401,7 @@
 
   function fmtDate(ds) {
     const d = new Date(ds + 'T00:00:00');
-    const base = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    const base = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
     const yr = String(d.getFullYear()).slice(-2);
     return `${base} '${yr}`;
   }
@@ -637,9 +638,13 @@
     </div>
     <div class="header-controls">
       <div class="type-filter">
-        {#key typeFilter}
-          <button class="log-btn type-btn type-anim-{typeFilter}" style="border-color: {typeColor}; color: {typeFilter === 'all' ? typeColor : 'inherit'}; --glow: {typeColor}" onclick={cycleType} aria-label="cycle activity type">{typeEmoji}</button>
-        {/key}
+        {#if !typePicked}
+          <button class="log-btn type-btn type-btn-shine" style="border-color: {typeColor}; color: inherit; --glow: {typeColor}" onclick={cycleType} aria-label="cycle activity type">{typeEmoji}</button>
+        {:else}
+          {#key typeFilter}
+            <button class="log-btn type-btn type-anim-{typeFilter}" style="border-color: {typeColor}; color: {typeFilter === 'all' ? typeColor : 'inherit'}; --glow: {typeColor}" onclick={cycleType} aria-label="cycle activity type">{typeEmoji}</button>
+          {/key}
+        {/if}
       </div>
       <button class="log-btn" onclick={() => unit = unit === 'km' ? 'mi' : 'km'}>{unit}</button>
       <button class="log-btn example-btn" class:active={showExample} onclick={toggleExample}>example</button>
@@ -842,7 +847,7 @@
         <div class="annual-lbl">longest {annualView === 'run' ? 'run' : 'ride'} ({unit})</div>
       </div>
       <div class="annual-stat">
-        <div class="annual-val">↑ {fmtK(unit === 'km' ? yearElev : yearElev * 3.28084)}</div>
+        <div class="annual-val">↑&nbsp;{fmtK(unit === 'km' ? yearElev : yearElev * 3.28084)}</div>
         <div class="annual-lbl">{unit === 'km' ? 'm' : 'ft'} elevation</div>
       </div>
       <div class="annual-stat">
@@ -916,7 +921,7 @@
               {activity.heartrate ? `${activity.heartrate} bpm` : '—'}
             </div>
             <div class="run-elev">
-              {activity.elevation != null ? `↑ ${Math.round(unit === 'km' ? activity.elevation : activity.elevation * 3.28084)}${unit === 'km' ? 'm' : 'ft'}` : '—'}
+              {activity.elevation != null ? `↑\u00A0${Math.round(unit === 'km' ? activity.elevation : activity.elevation * 3.28084)}${unit === 'km' ? 'm' : 'ft'}` : '—'}
             </div>
             <div class="run-notes">{activity.notes || '—'}</div>
             <button
@@ -1364,6 +1369,11 @@
   .type-filter { display: flex; gap: 2px; }
   .type-btn { opacity: 0.6; transition: opacity 0.15s; }
   .type-btn:hover { opacity: 0.85; }
+  @keyframes type-shine {
+    0%, 100% { box-shadow: 0 0 4px 0 var(--glow); opacity: 0.6; }
+    50%       { box-shadow: 0 0 14px 5px var(--glow); opacity: 1; }
+  }
+  .type-btn-shine { animation: type-shine 1.8s ease-in-out infinite; }
   @keyframes anim-run {
     0%   { transform: translateX(-24px); opacity: 0; box-shadow: none; }
     65%  { transform: translateX(4px);   opacity: 1; box-shadow: 0 0 14px 4px var(--glow); }
@@ -1448,6 +1458,7 @@
     white-space: nowrap;
   }
   .run-type { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .matrix-active .run-date, .vapor-active .run-date { flex-basis: 100px; width: 100px; }
   .run-notes { color: var(--tx1); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .del-btn {
     background: none;
