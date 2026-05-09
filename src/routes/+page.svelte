@@ -89,6 +89,7 @@
   let calYear = $state(today.getFullYear());
   let calMonth = $state(today.getMonth());
   let hoveredDay = $state(null);
+  let hoveredPb = $state(null);
 
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const DAYS = ['M','T','W','T','F','S','S'];
@@ -660,7 +661,12 @@
       <span class="pb-label">all-time PBs</span>
       {#each pbTimes as pb}
         <span class="pb-item" class:pb-empty={!pb.time}>
-          <span class="pb-key">{pb.label}</span>{pb.time ?? '—'}{#if pb.isEstimate}<span class="pb-est" title={pb.tooltip}>est.</span>{/if}
+          <span class="pb-key">{pb.label}</span>{pb.time ?? '—'}{#if pb.isEstimate}<button
+            class="pb-est"
+            onmouseenter={() => hoveredPb = pb.label}
+            onmouseleave={() => hoveredPb = null}
+            onclick={() => hoveredPb = hoveredPb === pb.label ? null : pb.label}
+          >est.{#if hoveredPb === pb.label}<span class="pb-tooltip">{pb.tooltip}</span>{/if}</button>{/if}
         </span>
       {/each}
     </div>
@@ -1228,17 +1234,39 @@
     flex-wrap: wrap;
   }
   .pb-label { font-size: 10px; color: var(--tx2); text-transform: uppercase; letter-spacing: 0.1em; }
-  .pb-item { font-size: 12px; color: var(--tx1); }
+  .pb-item { font-size: 12px; color: var(--tx1); position: relative; }
   .pb-key { font-size: 10px; color: var(--tx2); text-transform: uppercase; letter-spacing: 0.06em; margin-right: 5px; }
   .pb-empty { color: var(--track); }
   .pb-est {
+    background: none;
+    border: none;
+    border-bottom: 1px dotted var(--tx2);
+    padding: 0;
+    font-family: inherit;
     font-size: 9px;
     color: var(--tx2);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     margin-left: 3px;
     cursor: help;
-    border-bottom: 1px dotted var(--tx2);
+    position: relative;
+  }
+  .pb-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--card2);
+    border: 1px solid var(--b2);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: var(--tx1);
+    white-space: nowrap;
+    z-index: 20;
+    pointer-events: none;
+    letter-spacing: 0;
+    text-transform: none;
   }
 
   @media (max-width: 600px) {
