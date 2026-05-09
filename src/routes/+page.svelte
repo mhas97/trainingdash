@@ -329,14 +329,23 @@
     { label: `${(maxMiles / 2 * kmFactor).toFixed(0)}`, y: PAD_Y + (SVG_H - PAD_Y * 2) / 2 },
   ]);
 
-  function handleMouseMove(e) {
-    const mouseX = e.clientX - e.currentTarget.getBoundingClientRect().left;
+  function pickClosest(clientX, rect) {
+    const x = clientX - rect.left;
     let closest = 0, minDist = Infinity;
     chartPoints.forEach((pt, i) => {
-      const d = Math.abs(pt.x - mouseX);
+      const d = Math.abs(pt.x - x);
       if (d < minDist) { minDist = d; closest = i; }
     });
     hoveredIdx = closest;
+  }
+
+  function handleMouseMove(e) {
+    pickClosest(e.clientX, e.currentTarget.getBoundingClientRect());
+  }
+
+  function handleTouchMove(e) {
+    e.preventDefault();
+    pickClosest(e.touches[0].clientX, e.currentTarget.getBoundingClientRect());
   }
 
   // ── Recent activity ───────────────────────────────────────
@@ -766,6 +775,8 @@
         height={SVG_H}
         onmousemove={handleMouseMove}
         onmouseleave={() => hoveredIdx = null}
+        ontouchmove={handleTouchMove}
+        ontouchend={() => hoveredIdx = null}
       >
         {#each yTicks as tick}
           <line x1={PAD_X} y1={tick.y} x2={chartWidth - 8} y2={tick.y} style="stroke: var(--hover)" stroke-width="1" />
