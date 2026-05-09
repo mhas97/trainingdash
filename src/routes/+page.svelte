@@ -432,7 +432,7 @@
       if (result.isEstimate) {
         const src = result.source;
         const srcDist = src.distance * kmFactor;
-        tooltip = `Projected from best pace over ${srcDist.toFixed(2)} ${unit} on ${src.date} (${src.duration})`;
+        tooltip = `est. from ${srcDist.toFixed(1)} ${unit} on ${src.date} (${src.duration})`;
       }
       return { label: t.label, time: result.time, isEstimate: result.isEstimate, tooltip };
     });
@@ -1088,8 +1088,7 @@
     padding: 8px 10px;
     z-index: 20;
     pointer-events: none;
-    white-space: normal;
-    max-width: min(300px, calc(100vw - 2rem));
+    white-space: nowrap;
     display: grid;
     grid-template-columns: 36px 52px 44px auto;
     column-gap: 8px;
@@ -1263,8 +1262,7 @@
     padding: 6px 10px;
     font-size: 11px;
     color: var(--tx1);
-    white-space: normal;
-    max-width: min(240px, calc(100vw - 2rem));
+    white-space: nowrap;
     z-index: 20;
     pointer-events: none;
     letter-spacing: 0;
