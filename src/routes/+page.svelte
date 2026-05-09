@@ -32,6 +32,8 @@
   }
 
   let showForm = $state(false);
+  let pendingTrack = $state(null);
+  let mapActivityId = $state(null);
   let form = $state({
     type: 'run',
     date: new Date().toISOString().split('T')[0],
@@ -68,9 +70,11 @@
       duration: normalizeDuration(form.duration),
       elevation: form.elevation ? parseFloat(form.elevation) : null,
       heartrate: form.heartrate ? parseInt(form.heartrate) : null,
-      notes: form.notes
+      notes: form.notes,
+      track: pendingTrack ?? undefined
     });
     form = { type: form.type, date: new Date().toISOString().split('T')[0], distance: '', duration: '', elevation: '', heartrate: '', notes: '' };
+    pendingTrack = null;
     showForm = false;
   }
 
@@ -340,6 +344,15 @@
     const distKm = distM / 1000;
     const name = doc.getElementsByTagName('name')[0]?.textContent ?? '';
 
+    const step = Math.max(1, Math.floor(pts.length / 400));
+    const track = [];
+    for (let i = 0; i < pts.length; i += step) {
+      track.push([+pts[i].getAttribute('lat'), +pts[i].getAttribute('lon')]);
+    }
+    const lastPt = pts.at(-1);
+    track.push([+lastPt.getAttribute('lat'), +lastPt.getAttribute('lon')]);
+    pendingTrack = track;
+
     form.type      = type;
     form.date      = date;
     form.distance  = unit === 'km' ? distKm.toFixed(2) : (distKm / 1.60934).toFixed(2);
@@ -401,6 +414,32 @@
     }
     importMsg = `imported ${added} activities`;
     setTimeout(() => { importMsg = ''; }, 3000);
+  }
+
+  // ── Route map projection ──────────────────────────────────
+  function routePolyline(track, W, H, pad) {
+    const lats = track.map(p => p[0]);
+    const lons = track.map(p => p[1]);
+    const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+    const minLon = Math.min(...lons), maxLon = Math.max(...lons);
+    const midLat = (minLat + maxLat) / 2;
+    const cosLat = Math.cos(midLat * Math.PI / 180);
+    const lonSpanCorr = (maxLon - minLon) * cosLat || 0.0001;
+    const latSpan = maxLat - minLat || 0.0001;
+    const innerW = W - pad * 2, innerH = H - pad * 2;
+    const scale = Math.min(innerW / lonSpanCorr, innerH / latSpan);
+    const offX = pad + (innerW - lonSpanCorr * scale) / 2;
+    const offY = pad + (innerH - latSpan * scale) / 2;
+    return track.map(([lat, lon]) =>
+      `${(offX + (lon - minLon) * cosLat * scale).toFixed(1)},${(offY + (maxLat - lat) * scale).toFixed(1)}`
+    ).join(' ');
+  }
+
+  function routeEndpoints(track, W, H, pad) {
+    const all = routePolyline(track, W, H, pad).split(' ');
+    const [sx, sy] = all[0].split(',').map(Number);
+    const [ex, ey] = all.at(-1).split(',').map(Number);
+    return { sx, sy, ex, ey };
   }
 
   // ── Annual totals ─────────────────────────────────────────
@@ -759,6 +798,13 @@
               {activity.elevation != null ? `↑${activity.elevation}${unit === 'km' ? 'm' : 'ft'}` : '—'}
             </div>
             <div class="run-notes">{activity.notes || '—'}</div>
+            {#if activity.track}
+              <button class="map-btn" class:map-btn-active={mapActivityId === activity.id}
+                onclick={() => mapActivityId = mapActivityId === activity.id ? null : activity.id}
+                title="Show route">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </button>
+            {/if}
             <button
               class="del-btn"
               class:del-armed={pendingDelete === activity.id}
@@ -777,6 +823,25 @@
       </div>
       </div>
     </div>
+    {#if mapActivityId}
+      {@const act = recentActivities.find(a => a.id === mapActivityId)}
+      {#if act?.track}
+        {@const W = 400}
+        {@const H = 220}
+        {@const pad = 16}
+        {@const pts = routePolyline(act.track, W, H, pad)}
+        {@const ep = routeEndpoints(act.track, W, H, pad)}
+        {@const col = ACTIVITY_COLORS[act.type ?? 'run']}
+        <div class="route-map-wrap">
+          <svg viewBox="0 0 {W} {H}" width="100%" style="display:block">
+            <rect width={W} height={H} rx="8" fill="var(--card2)" />
+            <polyline points={pts} fill="none" stroke={col} stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.85" />
+            <circle cx={ep.sx} cy={ep.sy} r="5" fill={col} opacity="0.5" />
+            <circle cx={ep.ex} cy={ep.ey} r="5" fill={col} />
+          </svg>
+        </div>
+      {/if}
+    {/if}
   </div>
   {/if}
 
@@ -1207,6 +1272,9 @@
   .sort-btn.sort-active { color: var(--tx0); }
   .sort-arrow { font-size: 9px; opacity: 0.8; }
   .sort-arrow-dim { opacity: 0.25; }
+  .map-btn { background: none; border: none; padding: 2px; color: var(--tx2); cursor: pointer; opacity: 0.4; flex-shrink: 0; }
+  .map-btn:hover, .map-btn.map-btn-active { opacity: 1; color: var(--tx0); }
+  .route-map-wrap { margin-top: 12px; border-radius: 8px; overflow: hidden; }
   .run-row {
     display: flex;
     align-items: center;
