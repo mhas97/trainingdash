@@ -849,7 +849,13 @@
         <div class="annual-lbl">{unit === 'km' ? 'm' : 'ft'} elevation</div>
       </div>
       <div class="annual-stat">
-        <div class="annual-val">{fmtTime(yearTotalSecs)}</div>
+        <div class="annual-val">
+          {#if yearTotalSecs > 0}
+            {@const h = Math.floor(yearTotalSecs / 3600)}
+            {@const m = Math.floor((yearTotalSecs % 3600) / 60)}
+            {#if h > 0}{h}<span class="stat-unit">h</span>{/if}<span class="stat-mins">{m}<span class="stat-unit">m</span></span>
+          {:else}—{/if}
+        </div>
         <div class="annual-lbl">active time</div>
       </div>
       <div class="annual-stat">
