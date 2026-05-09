@@ -124,6 +124,7 @@
   const todayStr = today.toISOString().split('T')[0];
   let calYear = $state(today.getFullYear());
   let calMonth = $state(today.getMonth());
+  let hoveredDay = $state(null);
 
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const DAYS = ['M','T','W','T','F','S','S'];
@@ -400,7 +401,12 @@
         {:else}
           {@const ds = toDateStr(calYear, calMonth, day)}
           {@const types = activityByDate[ds]}
-          <div class="cal-day" class:is-today={ds === todayStr}>
+          <div class="cal-day" class:is-today={ds === todayStr}
+            role="gridcell"
+            tabindex="0"
+            onmouseenter={() => hoveredDay = ds}
+            onmouseleave={() => hoveredDay = null}
+          >
             <span>{day}</span>
             {#if types}
               <div class="cal-dots">
@@ -410,6 +416,19 @@
                   {/if}
                 {/each}
               </div>
+            {/if}
+            {#if hoveredDay === ds}
+              {@const dayActivities = activities.filter(a => a.date === ds)}
+              {#if dayActivities.length > 0}
+                <div class="cal-tooltip">
+                  {#each dayActivities as act}
+                    <span class="cal-tip-type" style="color: {ACTIVITY_COLORS[act.type]}">{act.type}</span>
+                    <span>{act.distance != null ? `${(act.distance * kmFactor).toFixed(1)}${unit}` : '—'}</span>
+                    <span>{act.duration}</span>
+                    <span class="cal-tip-notes">{act.notes || ''}</span>
+                  {/each}
+                </div>
+              {/if}
             {/if}
           </div>
         {/if}
@@ -782,6 +801,7 @@
     padding-bottom: 6px;
   }
   .cal-day {
+    position: relative;
     aspect-ratio: 1;
     display: flex;
     flex-direction: column;
@@ -800,9 +820,38 @@
     display: flex;
     gap: 2px;
   }
+  .cal-tooltip {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-45%, -150%);
+    background: #1a1a20;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 8px 10px;
+    z-index: 20;
+    pointer-events: none;
+    white-space: nowrap;
+    display: grid;
+    grid-template-columns: 36px 52px 44px auto;
+    column-gap: 8px;
+    row-gap: 5px;
+    align-items: center;
+    font-size: 12px;
+    color: #aaa;
+  }
+  .cal-tip-type {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    min-width: 36px;
+  }
+  .cal-tip-notes {
+    color: #666;
+  }
   .cal-dot {
-    width: 4px;
-    height: 4px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
   }
 
