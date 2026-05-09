@@ -776,7 +776,7 @@
         <div class="annual-lbl">longest {annualView === 'run' ? 'run' : 'ride'} ({unit})</div>
       </div>
       <div class="annual-stat">
-        <div class="annual-val">↑ {yearElev.toFixed(0)}</div>
+        <div class="annual-val">↑{yearElev.toFixed(0)}</div>
         <div class="annual-lbl">{unit === 'km' ? 'm' : 'ft'} elevation</div>
       </div>
       <div class="annual-stat">
@@ -856,7 +856,7 @@
               {activity.heartrate ? `${activity.heartrate} bpm` : '—'}
             </div>
             <div class="run-elev">
-              {activity.elevation != null ? `↑${activity.elevation}${unit === 'km' ? 'm' : 'ft'}` : '—'}
+              {activity.elevation != null ? `↑ ${activity.elevation}${unit === 'km' ? 'm' : 'ft'}` : '—'}
             </div>
             <div class="run-notes">{activity.notes || '—'}</div>
             <button
