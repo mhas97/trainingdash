@@ -248,13 +248,13 @@
 
   function sortVal(a, field) {
     switch (field) {
-      case 'date':     return a.date;
-      case 'type':     return a.type ?? 'run';
-      case 'dist':     return a.distance ?? -1;
-      case 'time':     return parseSecs(a.duration);
-      case 'pace':     return (a.distance && a.duration) ? parseSecs(a.duration) / a.distance : Infinity;
-      case 'hr':       return a.heartrate ?? -1;
-      case 'elev':     return a.elevation ?? -1;
+      case 'date':  return a.date;
+      case 'type':  return a.type ?? 'run';
+      case 'dist':  return a.distance ?? null;
+      case 'time':  return a.duration ? parseSecs(a.duration) : null;
+      case 'pace':  return (a.distance && a.duration) ? parseSecs(a.duration) / a.distance : null;
+      case 'hr':    return a.heartrate ?? null;
+      case 'elev':  return a.elevation ?? null;
     }
   }
 
@@ -262,6 +262,9 @@
     const filtered = filterType === 'all' ? [...activities] : activities.filter(a => (a.type ?? 'run') === filterType);
     return filtered.sort((a, b) => {
       const av = sortVal(a, sortField), bv = sortVal(b, sortField);
+      if (av === null && bv === null) return 0;
+      if (av === null) return 1;
+      if (bv === null) return -1;
       const cmp = typeof av === 'string' ? av.localeCompare(bv) : av - bv;
       return sortDir === 'desc' ? -cmp : cmp;
     });
