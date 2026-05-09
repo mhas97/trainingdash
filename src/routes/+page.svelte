@@ -270,6 +270,12 @@
     return `${m}:${String(s).padStart(2, '0')}`;
   }
 
+  function fmtK(n) {
+    if (n < 1000) return Math.round(n).toString();
+    const k = n / 1000;
+    return k % 1 === 0 ? `${k.toFixed(0)}k` : `${k.toFixed(1)}k`;
+  }
+
   function fmtTime(secs) {
     if (secs === 0) return '—';
     const h = Math.floor(secs / 3600);
@@ -831,7 +837,7 @@
     </div>
     <div class="annual-grid" style="--av:{ACTIVITY_COLORS[annualView]}">
       <div class="annual-stat">
-        <div class="annual-val">{(yearDist * kmFactor).toFixed(0)}</div>
+        <div class="annual-val">{fmtK(yearDist * kmFactor)}</div>
         <div class="annual-lbl">{unit} {annualView === 'run' ? 'running' : 'cycling'}</div>
       </div>
       <div class="annual-stat">
@@ -839,7 +845,7 @@
         <div class="annual-lbl">longest {annualView === 'run' ? 'run' : 'ride'} ({unit})</div>
       </div>
       <div class="annual-stat">
-        <div class="annual-val">↑{yearElev.toFixed(0)}</div>
+        <div class="annual-val">↑{fmtK(yearElev)}</div>
         <div class="annual-lbl">{unit === 'km' ? 'm' : 'ft'} elevation</div>
       </div>
       <div class="annual-stat">
