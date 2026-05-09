@@ -1078,6 +1078,10 @@
     border-radius: 8px;
   }
   .cal-day.is-today { color: var(--tx0); border: 1px solid var(--b3); }
+  @media (hover: hover) {
+    .cal-day { transition: background 0.15s ease; }
+    .cal-day:hover { background: var(--hover); color: var(--tx0); }
+  }
   .cal-dots { display: flex; gap: 2px; }
   .cal-tooltip {
     position: absolute;
