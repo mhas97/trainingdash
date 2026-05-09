@@ -335,7 +335,10 @@
   }
 
   function fmtDate(ds) {
-    return new Date(ds + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    const d = new Date(ds + 'T00:00:00');
+    const base = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    const yr = String(d.getFullYear()).slice(-2);
+    return `${base} '${yr}`;
   }
 
   // ── Import (GPX / Garmin CSV) ─────────────────────────────
@@ -773,7 +776,7 @@
         <div class="annual-lbl">longest {annualView === 'run' ? 'run' : 'ride'} ({unit})</div>
       </div>
       <div class="annual-stat">
-        <div class="annual-val">↑{yearElev.toFixed(0)}</div>
+        <div class="annual-val">↑ {yearElev.toFixed(0)}</div>
         <div class="annual-lbl">{unit === 'km' ? 'm' : 'ft'} elevation</div>
       </div>
       <div class="annual-stat">
