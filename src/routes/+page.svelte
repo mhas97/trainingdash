@@ -1,7 +1,23 @@
 <script>
   import { EXAMPLE_ACTIVITIES } from '$lib/exampleData.js';
 
-  const ACTIVITY_COLORS = { run: '#ff6b35', gym: '#b44fff', cycle: '#00e5ff' };
+  const THEMES = {
+    dark:   { bg: '#0d0d0f', card: '#131318', card2: '#1a1a20', hover: '#1e1e24', rb: '#1c1c1c', b1: '#222',    b2: '#2a2a2a', b3: '#333',    track: '#444',    run: '#ff6b35', gym: '#b44fff', cycle: '#00e5ff' },
+    slate:  { bg: '#0b0c14', card: '#111420', card2: '#181b2e', hover: '#1e2138', rb: '#1a1d30', b1: '#1e2035', b2: '#252840', b3: '#2d3055', track: '#3a3d5c', run: '#6366f1', gym: '#f472b6', cycle: '#34d399' },
+    forest: { bg: '#080d09', card: '#0e160f', card2: '#131e14', hover: '#182419', rb: '#162017', b1: '#1a2e1b', b2: '#1f351f', b3: '#263d27', track: '#2d4a2e', run: '#4ade80', gym: '#facc15', cycle: '#38bdf8' },
+    amber:  { bg: '#0f0d0a', card: '#171410', card2: '#1e1a14', hover: '#23201a', rb: '#201e18', b1: '#2a2218', b2: '#322a1e', b3: '#3d3226', track: '#4a4030', run: '#f59e0b', gym: '#f87171', cycle: '#a78bfa' },
+    mono:   { bg: '#0a0a0a', card: '#111111', card2: '#181818', hover: '#1e1e1e', rb: '#1a1a1a', b1: '#222222', b2: '#2a2a2a', b3: '#333333', track: '#444444', run: '#e5e5e5', gym: '#888888', cycle: '#cccccc' },
+  };
+
+  let theme = $state(localStorage.getItem('theme') ?? 'dark');
+  let T = $derived(THEMES[theme] ?? THEMES.dark);
+  let ACTIVITY_COLORS = $derived({ run: T.run, gym: T.gym, cycle: T.cycle });
+  let themeStyle = $derived(
+    `--bg:${T.bg};--card:${T.card};--card2:${T.card2};--hover:${T.hover};` +
+    `--rb:${T.rb};--b1:${T.b1};--b2:${T.b2};--b3:${T.b3};--track:${T.track};` +
+    `--c-run:${T.run};--c-gym:${T.gym};--c-cycle:${T.cycle};`
+  );
+  $effect(() => { localStorage.setItem('theme', theme); });
 
   const _stored = JSON.parse(localStorage.getItem('activities') ?? 'null');
   let _userActivities = $state(_stored ?? []);
@@ -419,13 +435,18 @@
   });
 </script>
 
-<div class="page">
+<div class="page" style={themeStyle}>
   <div class="header">
     <div>
       <h1>training</h1>
       <p class="subtitle">activity log</p>
     </div>
     <div class="header-controls">
+      <div class="theme-swatches">
+        {#each Object.entries(THEMES) as [key, t]}
+          <button class="theme-swatch" class:active={theme === key} style="--swatch:{t.run}" onclick={() => theme = key} title={key}></button>
+        {/each}
+      </div>
       <div class="unit-toggle">
         <button class:active={unit === 'mi'} onclick={() => unit = 'mi'}>mi</button>
         <button class:active={unit === 'km'} onclick={() => unit = 'km'}>km</button>
@@ -548,14 +569,14 @@
         onmouseleave={() => hoveredIdx = null}
       >
         {#each yTicks as tick}
-          <line x1={PAD_X} y1={tick.y} x2={chartWidth - 8} y2={tick.y} stroke="#1e1e24" stroke-width="1" />
+          <line x1={PAD_X} y1={tick.y} x2={chartWidth - 8} y2={tick.y} style="stroke: var(--hover)" stroke-width="1" />
           <text x={PAD_X - 5} y={tick.y} fill="#555" font-size="9" text-anchor="end" dominant-baseline="middle">{tick.label}</text>
         {/each}
-        <path d={areaPath} fill="rgba(255, 107, 53, 0.07)" />
+        <path d={areaPath} style="fill: color-mix(in srgb, var(--c-run) 7%, transparent)" />
         <polyline
           points={polylinePoints}
           fill="none"
-          stroke="#ff6b35"
+          style="stroke: var(--c-run)"
           stroke-width="1.5"
           stroke-opacity="0.5"
           stroke-linejoin="round"
@@ -564,7 +585,7 @@
           <line
             x1={chartPoints[hoveredIdx].x} y1={PAD_Y}
             x2={chartPoints[hoveredIdx].x} y2={SVG_H - PAD_Y}
-            stroke="#333" stroke-width="1"
+            style="stroke: var(--b3)" stroke-width="1"
           />
         {/if}
         {#each chartPoints as pt, i}
@@ -572,7 +593,7 @@
             <circle
               cx={pt.x} cy={pt.y}
               r={i === hoveredIdx ? 4 : pt.isCurrent ? 3.5 : 2.5}
-              fill="#ff6b35"
+              style="fill: var(--c-run)"
               fill-opacity={i === hoveredIdx || pt.isCurrent ? 1 : 0.65}
             />
           {/if}
@@ -757,7 +778,7 @@
 
 <style>
   .page {
-    background: #0d0d0f;
+    background: var(--bg);
     min-height: 100vh;
     padding: 2rem;
   }
@@ -791,9 +812,28 @@
     gap: 8px;
     margin-top: 6px;
   }
+
+  /* ── Theme swatches ── */
+  .theme-swatches {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+  .theme-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--swatch);
+    background: var(--swatch);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.15s;
+  }
+  .theme-swatch.active { background: transparent; }
+
   .unit-toggle {
     display: flex;
-    border: 1px solid #333;
+    border: 1px solid var(--b3);
     border-radius: 6px;
     overflow: hidden;
   }
@@ -807,12 +847,12 @@
     letter-spacing: 0.04em;
   }
   .unit-toggle button.active {
-    background: #222;
+    background: var(--b1);
     color: #fff;
   }
   .log-btn {
     background: none;
-    border: 1px solid #333;
+    border: 1px solid var(--b3);
     border-radius: 6px;
     color: #fff;
     font-size: 13px;
@@ -821,7 +861,7 @@
     letter-spacing: 0.04em;
   }
   .log-btn:hover { border-color: #555; }
-  .example-btn.active { border-color: #ff6b35; color: #ff6b35; }
+  .example-btn.active { border-color: var(--c-run); color: var(--c-run); }
   .import-overlay {
     position: fixed;
     inset: 0;
@@ -830,15 +870,13 @@
     border: none;
     cursor: default;
   }
-  .import-wrap {
-    position: relative;
-  }
+  .import-wrap { position: relative; }
   .import-menu {
     position: absolute;
     right: 0;
     top: calc(100% + 4px);
-    background: #1a1a20;
-    border: 1px solid #333;
+    background: var(--card2);
+    border: 1px solid var(--b3);
     border-radius: 8px;
     padding: 4px;
     z-index: 100;
@@ -858,10 +896,10 @@
     font-family: inherit;
     letter-spacing: 0.04em;
   }
-  .import-menu button:hover { background: #222; color: #fff; }
+  .import-menu button:hover { background: var(--b1); color: #fff; }
   .import-msg {
-    background: #131318;
-    border: 1px solid #2a2a2a;
+    background: var(--card);
+    border: 1px solid var(--b2);
     border-radius: 8px;
     color: #aaa;
     font-size: 12px;
@@ -869,10 +907,11 @@
     margin-bottom: 12px;
     text-align: center;
   }
+
   /* ── Form ── */
   .form-card {
-    background: #131318;
-    border: 1px solid #222;
+    background: var(--card);
+    border: 1px solid var(--b1);
     border-radius: 12px;
     padding: 1.25rem;
     margin-bottom: 1.25rem;
@@ -883,11 +922,7 @@
     gap: 12px;
     margin-bottom: 12px;
   }
-  label {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
+  label { display: flex; flex-direction: column; gap: 5px; }
   label span {
     font-size: 11px;
     color: #888;
@@ -895,8 +930,8 @@
     letter-spacing: 0.08em;
   }
   input {
-    background: #0d0d0f;
-    border: 1px solid #2a2a2a;
+    background: var(--bg);
+    border: 1px solid var(--b2);
     border-radius: 6px;
     color: #fff;
     font-size: 14px;
@@ -904,10 +939,10 @@
     outline: none;
     font-family: inherit;
   }
-  input:focus { border-color: #ff6b35; }
+  input:focus { border-color: var(--c-run); }
   .type-tabs {
     display: flex;
-    border: 1px solid #2a2a2a;
+    border: 1px solid var(--b2);
     border-radius: 6px;
     overflow: hidden;
     height: 36px;
@@ -923,11 +958,11 @@
     letter-spacing: 0.04em;
   }
   .type-tabs button.active {
-    background: #1e1e24;
-    color: var(--tab-color, #ff6b35);
+    background: var(--hover);
+    color: var(--tab-color, var(--c-run));
   }
   .submit-btn {
-    background: var(--btn-color, #ff6b35);
+    background: var(--btn-color, var(--c-run));
     border: none;
     border-radius: 6px;
     color: #fff;
@@ -938,29 +973,24 @@
     letter-spacing: 0.04em;
   }
   .submit-btn:hover:not(:disabled) { opacity: 0.85; }
-  .submit-btn:disabled { background: #222; color: #555; cursor: default; }
+  .submit-btn:disabled { background: var(--b1); color: #555; cursor: default; }
 
   /* ── Stats ── */
   .stats-row {
     display: flex;
     flex-direction: column;
-    background: #131318;
-    border: 1px solid #222;
+    background: var(--card);
+    border: 1px solid var(--b1);
     border-radius: 12px;
     padding: 1.1rem 1.25rem;
     margin-bottom: 12px;
   }
-  .stats-items {
-    display: flex;
-  }
-  .stat {
-    flex: 1;
-    text-align: center;
-  }
+  .stats-items { display: flex; }
+  .stat { flex: 1; text-align: center; }
   .stat-value {
     font-size: 32px;
     font-weight: 500;
-    color: #ff6b35;
+    color: var(--c-run);
     line-height: 1;
     margin-bottom: 4px;
   }
@@ -970,15 +1000,12 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
   }
-  .divider {
-    width: 1px;
-    background: #444;
-    margin: 0 4px;
-  }
+  .divider { width: 1px; background: var(--track); margin: 0 4px; }
+
   /* ── Card ── */
   .card {
-    background: #131318;
-    border: 1px solid #222;
+    background: var(--card);
+    border: 1px solid var(--b1);
     border-radius: 12px;
     padding: 1.1rem 1.25rem;
     margin-bottom: 12px;
@@ -996,10 +1023,7 @@
     letter-spacing: 0.1em;
     margin-bottom: 14px;
   }
-  .card-value {
-    font-size: 12px;
-    color: #ff6b35;
-  }
+  .card-value { font-size: 12px; color: var(--c-run); }
 
   /* ── Calendar ── */
   .cal-nav {
@@ -1008,11 +1032,7 @@
     justify-content: space-between;
     margin-bottom: 14px;
   }
-  .cal-title {
-    font-size: 15px;
-    color: #fff;
-    font-weight: 500;
-  }
+  .cal-title { font-size: 15px; color: #fff; font-weight: 500; }
   .nav-btn {
     background: none;
     border: none;
@@ -1023,11 +1043,7 @@
     line-height: 1;
   }
   .nav-btn:hover { color: #fff; }
-  .cal-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
-  }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
   .cal-label {
     text-align: center;
     font-size: 11px;
@@ -1041,28 +1057,22 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    border-top: 1px solid rgba(255, 107, 53, 0.15);
+    border-top: 1px solid color-mix(in srgb, var(--c-run) 15%, transparent);
     justify-content: center;
     gap: 3px;
     font-size: 13px;
     color: #ccc;
     border-radius: 8px;
   }
-  .cal-day.is-today {
-    color: #fff;
-    border: 1px solid #333;
-  }
-  .cal-dots {
-    display: flex;
-    gap: 2px;
-  }
+  .cal-day.is-today { color: #fff; border: 1px solid var(--b3); }
+  .cal-dots { display: flex; gap: 2px; }
   .cal-tooltip {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-45%, -150%);
-    background: #1a1a20;
-    border: 1px solid #2a2a2a;
+    background: var(--card2);
+    border: 1px solid var(--b2);
     border-radius: 8px;
     padding: 8px 10px;
     z-index: 20;
@@ -1076,39 +1086,21 @@
     font-size: 12px;
     color: #aaa;
   }
-  .cal-tip-type {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    min-width: 36px;
-  }
-  .cal-tip-notes {
-    color: #666;
-  }
-  .cal-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-  }
+  .cal-tip-type { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; min-width: 36px; }
+  .cal-tip-notes { color: #666; }
+  .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
 
   /* ── Chart ── */
-  .chart-container {
-    position: relative;
-    padding-bottom: 18px;
-  }
-  .chart-container svg {
-    display: block;
-    overflow: visible;
-    cursor: crosshair;
-  }
+  .chart-container { position: relative; padding-bottom: 18px; }
+  .chart-container svg { display: block; overflow: visible; cursor: crosshair; }
   .chart-tooltip {
     position: absolute;
-    background: #1a1a20;
-    border: 1px solid #333;
+    background: var(--card2);
+    border: 1px solid var(--b3);
     border-radius: 4px;
     padding: 3px 8px;
     font-size: 11px;
-    color: #ff6b35;
+    color: var(--c-run);
     pointer-events: none;
     transform: translateX(-50%);
     white-space: nowrap;
@@ -1121,13 +1113,10 @@
     justify-content: space-between;
     margin-bottom: 14px;
   }
-  .filter-tabs {
-    display: flex;
-    gap: 2px;
-  }
+  .filter-tabs { display: flex; gap: 2px; }
   .filter-tabs button {
     background: none;
-    border: 1px solid #2a2a2a;
+    border: 1px solid var(--b2);
     border-radius: 4px;
     color: #555;
     font-size: 11px;
@@ -1140,24 +1129,21 @@
     border-color: var(--tab-color, #666);
     color: var(--tab-color, #fff);
   }
-  .runs-list {
-    display: flex;
-    flex-direction: column;
-  }
+  .runs-list { display: flex; flex-direction: column; }
   .runs-scroll {
     max-height: 280px;
     overflow-y: auto;
     scrollbar-width: thin;
-    scrollbar-color: #2a2a2a transparent;
+    scrollbar-color: var(--b2) transparent;
   }
   .run-header {
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 0 0 8px;
-    border-bottom: 1px solid #1c1c1c;
+    border-bottom: 1px solid var(--rb);
     font-size: 10px;
-    color: #444;
+    color: var(--track);
     text-transform: uppercase;
     letter-spacing: 0.08em;
   }
@@ -1166,7 +1152,7 @@
     align-items: center;
     gap: 10px;
     padding: 9px 0;
-    border-bottom: 1px solid #1c1c1c;
+    border-bottom: 1px solid var(--rb);
     font-size: 13px;
   }
   .run-row:last-child { border-bottom: none; }
@@ -1178,17 +1164,11 @@
     white-space: nowrap;
   }
   .run-type { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
-  .run-notes {
-    color: #aaa;
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+  .run-notes { color: #aaa; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .del-btn {
     background: none;
     border: none;
-    color: #2a2a2a;
+    color: var(--b2);
     font-size: 18px;
     cursor: pointer;
     padding: 0 2px;
@@ -1207,7 +1187,7 @@
   }
   .annual-toggle {
     display: flex;
-    border: 1px solid #2a2a2a;
+    border: 1px solid var(--b2);
     border-radius: 6px;
     overflow: hidden;
   }
@@ -1221,61 +1201,30 @@
     font-family: inherit;
     letter-spacing: 0.04em;
   }
-  .annual-toggle button.active {
-    background: #1e1e24;
-    color: var(--tab-color, #fff);
-  }
-  .annual-grid {
-    display: flex;
-    margin-bottom: 14px;
-  }
+  .annual-toggle button.active { background: var(--hover); color: var(--tab-color, #fff); }
+  .annual-grid { display: flex; margin-bottom: 14px; }
   .annual-stat {
     flex: 1;
     text-align: center;
-    border-right: 1px solid #222;
+    border-right: 1px solid var(--b1);
     padding: 0 6px;
   }
   .annual-stat:first-child { padding-left: 0; }
   .annual-stat:last-child { border-right: none; padding-right: 0; }
-  .annual-val {
-    font-size: 22px;
-    font-weight: 500;
-    color: #fff;
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-  .annual-lbl {
-    font-size: 10px;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
+  .annual-val { font-size: 22px; font-weight: 500; color: #fff; line-height: 1; margin-bottom: 4px; }
+  .annual-lbl { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.08em; }
   .pb-row {
     display: flex;
     align-items: center;
     gap: 16px;
-    border-top: 1px solid #1c1c1c;
+    border-top: 1px solid var(--rb);
     padding-top: 12px;
     flex-wrap: wrap;
   }
-  .pb-label {
-    font-size: 10px;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-  .pb-item {
-    font-size: 12px;
-    color: #bbb;
-  }
-  .pb-key {
-    font-size: 10px;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-right: 5px;
-  }
-  .pb-empty { color: #444; }
+  .pb-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.1em; }
+  .pb-item { font-size: 12px; color: #bbb; }
+  .pb-key { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.06em; margin-right: 5px; }
+  .pb-empty { color: var(--track); }
   .pb-est {
     font-size: 9px;
     color: #555;
@@ -1289,7 +1238,7 @@
   @media (max-width: 600px) {
     .page { padding: 1rem; }
     .header { flex-direction: column; }
-    .header-controls { width: 100%; justify-content: flex-start; }
+    .header-controls { width: 100%; justify-content: center; }
     .form-row { grid-template-columns: 1fr; }
     .form-row label[style] { grid-column: 1 !important; }
     .runs-list { overflow-x: auto; }
