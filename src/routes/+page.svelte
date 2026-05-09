@@ -178,7 +178,8 @@
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   }
 
-  // ── Weekly chart — runs only ──────────────────────────────
+  // ── Weekly chart ──────────────────────────────────────────
+  let chartView = $state('run');
   let chartWeeks = $derived.by(() => {
     const weeks = [];
     for (let i = 11; i >= 0; i--) {
@@ -187,7 +188,7 @@
       const miles = activities
         .filter(a => {
           const d = new Date(a.date + 'T00:00:00');
-          return d >= ws && d < we && (a.type ?? 'run') === 'run';
+          return d >= ws && d < we && (a.type ?? 'run') === chartView;
         })
         .reduce((s, a) => s + (a.distance || 0), 0);
       const label = `${ws.getDate()}/${ws.getMonth() + 1}`;
@@ -569,11 +570,17 @@
     </div>
   </div>
 
-  <!-- Weekly distance chart (runs) -->
+  <!-- Weekly distance chart -->
   <div class="card">
     <div class="card-header">
-      <span class="card-label">weekly running distance</span>
-      {#if weekMiles > 0}<span class="card-value">{(weekMiles * kmFactor).toFixed(1)} {unit} this week</span>{/if}
+      <span class="card-label">weekly {chartView === 'run' ? 'running' : 'cycling'} distance</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        {#if chartWeeks.at(-1)?.miles > 0}<span class="card-value">{(chartWeeks.at(-1).miles * kmFactor).toFixed(1)} {unit} this week</span>{/if}
+        <div class="annual-toggle">
+          <button class:active={chartView === 'run'} style={chartView === 'run' ? `--tab-color: ${ACTIVITY_COLORS.run}` : ''} onclick={() => chartView = 'run'}>run</button>
+          <button class:active={chartView === 'cycle'} style={chartView === 'cycle' ? `--tab-color: ${ACTIVITY_COLORS.cycle}` : ''} onclick={() => chartView = 'cycle'}>cycle</button>
+        </div>
+      </div>
     </div>
     <div class="chart-container" bind:clientWidth={chartWidth}>
       <svg
@@ -588,11 +595,11 @@
           <line x1={PAD_X} y1={tick.y} x2={chartWidth - 8} y2={tick.y} style="stroke: var(--hover)" stroke-width="1" />
           <text x={PAD_X - 5} y={tick.y} style="fill: var(--tx2)" font-size="9" text-anchor="end" dominant-baseline="middle">{tick.label}</text>
         {/each}
-        <path d={areaPath} style="fill: color-mix(in srgb, var(--c-run) 7%, transparent)" />
+        <path d={areaPath} style="fill: color-mix(in srgb, {ACTIVITY_COLORS[chartView]} 7%, transparent)" />
         <polyline
           points={polylinePoints}
           fill="none"
-          style="stroke: var(--c-run)"
+          style="stroke: {ACTIVITY_COLORS[chartView]}"
           stroke-width="1.5"
           stroke-opacity="0.5"
           stroke-linejoin="round"
@@ -609,7 +616,7 @@
             <circle
               cx={pt.x} cy={pt.y}
               r={i === hoveredIdx ? 4 : pt.isCurrent ? 3.5 : 2.5}
-              style="fill: var(--c-run)"
+              style="fill: {ACTIVITY_COLORS[chartView]}"
               fill-opacity={i === hoveredIdx || pt.isCurrent ? 1 : 0.65}
             />
           {/if}
