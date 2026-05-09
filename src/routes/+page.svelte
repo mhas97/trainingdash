@@ -634,9 +634,9 @@
         <button class:active={annualView === 'cycle'} style={annualView === 'cycle' ? `--tab-color: ${ACTIVITY_COLORS.cycle}` : ''} onclick={() => annualView = 'cycle'}>cycle</button>
       </div>
     </div>
-    <div class="annual-grid">
+    <div class="annual-grid" style="--av:{ACTIVITY_COLORS[annualView]}">
       <div class="annual-stat">
-        <div class="annual-val" style="color: {ACTIVITY_COLORS[annualView]}">{(yearDist * kmFactor).toFixed(0)}</div>
+        <div class="annual-val">{(yearDist * kmFactor).toFixed(0)}</div>
         <div class="annual-lbl">{unit} {annualView === 'run' ? 'running' : 'cycling'}</div>
       </div>
       <div class="annual-stat">
@@ -1217,7 +1217,7 @@
   }
   .annual-stat:first-child { padding-left: 0; }
   .annual-stat:last-child { border-right: none; padding-right: 0; }
-  .annual-val { font-size: 22px; font-weight: 500; color: var(--tx0); line-height: 1; margin-bottom: 4px; }
+  .annual-val { font-size: 22px; font-weight: 500; color: var(--av, var(--c-run)); line-height: 1; margin-bottom: 4px; }
   .annual-lbl { font-size: 10px; color: var(--tx2); text-transform: uppercase; letter-spacing: 0.08em; }
   .pb-row {
     display: flex;
