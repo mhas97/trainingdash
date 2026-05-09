@@ -237,6 +237,124 @@
     return new Date(ds + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
   }
 
+  // ── Import (GPX / Garmin CSV) ─────────────────────────────
+  let gpxInput;
+  let csvInput;
+  let importMsg = $state('');
+  let showImportMenu = $state(false);
+
+  function haversine(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const toRad = d => d * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function handleGpx(text) {
+    const doc = new DOMParser().parseFromString(text, 'application/xml');
+    const pts = [...doc.getElementsByTagName('trkpt')];
+    if (pts.length < 2) return;
+
+    const rawType = doc.getElementsByTagName('type')[0]?.textContent?.toLowerCase() ?? '';
+    const type = rawType.includes('run') ? 'run'
+      : (rawType.includes('cycl') || rawType.includes('bik')) ? 'cycle'
+      : 'run';
+
+    const firstTime = new Date(pts[0].getElementsByTagName('time')[0]?.textContent ?? '');
+    const lastTime  = new Date(pts.at(-1).getElementsByTagName('time')[0]?.textContent ?? '');
+    const date = firstTime.toISOString().split('T')[0];
+
+    const totalSecs = Math.round((lastTime - firstTime) / 1000);
+    const h = Math.floor(totalSecs / 3600);
+    const m = Math.floor((totalSecs % 3600) / 60);
+    const s = totalSecs % 60;
+    const duration = h > 0
+      ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+      : `${m}:${String(s).padStart(2,'0')}`;
+
+    let distM = 0, elevGain = 0;
+    let prevEle = parseFloat(pts[0].getElementsByTagName('ele')[0]?.textContent ?? '0');
+    for (let i = 1; i < pts.length; i++) {
+      const p = pts[i - 1], c = pts[i];
+      distM += haversine(+p.getAttribute('lat'), +p.getAttribute('lon'), +c.getAttribute('lat'), +c.getAttribute('lon'));
+      const ele = parseFloat(c.getElementsByTagName('ele')[0]?.textContent ?? '0');
+      if (ele > prevEle) elevGain += ele - prevEle;
+      prevEle = ele;
+    }
+
+    const hrEls = [...doc.getElementsByTagNameNS('*', 'hr')];
+    const avgHr = hrEls.length
+      ? Math.round(hrEls.reduce((s, el) => s + +el.textContent, 0) / hrEls.length)
+      : null;
+
+    const distKm = distM / 1000;
+    const name = doc.getElementsByTagName('name')[0]?.textContent ?? '';
+
+    form.type      = type;
+    form.date      = date;
+    form.distance  = unit === 'km' ? distKm.toFixed(2) : (distKm / 1.60934).toFixed(2);
+    form.duration  = duration;
+    form.elevation = Math.round(unit === 'km' ? elevGain : elevGain * 3.28084).toString();
+    form.heartrate = avgHr ? avgHr.toString() : '';
+    form.notes     = name;
+    showForm = true;
+  }
+
+  function parseCSVLine(line) {
+    const result = [];
+    let cur = '', inQuotes = false;
+    for (const ch of line) {
+      if (ch === '"') { inQuotes = !inQuotes; }
+      else if (ch === ',' && !inQuotes) { result.push(cur); cur = ''; }
+      else { cur += ch; }
+    }
+    result.push(cur);
+    return result;
+  }
+
+  function fmtGarminDuration(str) {
+    if (!str || str === '--') return null;
+    const parts = str.split(':').map(Number);
+    if (parts.length === 3) {
+      if (parts[0] === 0) return `${parts[1]}:${String(parts[2]).padStart(2,'0')}`;
+      return `${parts[0]}:${String(parts[1]).padStart(2,'0')}:${String(parts[2]).padStart(2,'0')}`;
+    }
+    return str;
+  }
+
+  function handleCsv(text) {
+    const TYPE_MAP = { 'running': 'run', 'strength training': 'gym', 'cycling': 'cycle', 'virtual ride': 'cycle' };
+    const lines = text.split('\n').filter(l => l.trim());
+    let added = 0;
+    for (const line of lines.slice(1)) {
+      const c = parseCSVLine(line);
+      const type = TYPE_MAP[(c[0] ?? '').toLowerCase().trim()];
+      if (!type) continue;
+      const id = `garmin-${(c[1] ?? '').replace(' ', 'T')}`;
+      if (_userActivities.some(a => a.id === id)) continue;
+      const distKm = parseFloat(c[4]);
+      const distance = (type === 'gym' || isNaN(distKm) || distKm === 0) ? null : distKm / 1.60934;
+      const rawElev = (c[14] ?? '').replace(/,/g, '');
+      const elevation = rawElev === '--' || rawElev === '' ? null : parseInt(rawElev);
+      const avgHr = parseInt(c[7]);
+      _userActivities.push({
+        id,
+        type,
+        date: (c[1] ?? '').split(' ')[0],
+        distance,
+        duration: fmtGarminDuration(c[6]),
+        elevation,
+        heartrate: isNaN(avgHr) ? null : avgHr,
+        notes: c[3] ?? '',
+      });
+      added++;
+    }
+    importMsg = `imported ${added} activities`;
+    setTimeout(() => { importMsg = ''; }, 3000);
+  }
+
   // ── Annual totals ─────────────────────────────────────────
   const currentYear = today.getFullYear();
   let annualView = $state('run');
@@ -300,11 +418,29 @@
         <button class:active={unit === 'km'} onclick={() => unit = 'km'}>km</button>
       </div>
       <button class="log-btn example-btn" class:active={showExample} onclick={toggleExample}>example</button>
+      <input type="file" accept=".gpx" style="display:none" bind:this={gpxInput} onchange={e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => handleGpx(ev.target.result); r.readAsText(f); e.target.value=''; }} />
+      <input type="file" accept=".csv" style="display:none" bind:this={csvInput} onchange={e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => handleCsv(ev.target.result); r.readAsText(f); e.target.value=''; }} />
+      {#if showImportMenu}
+        <button class="import-overlay" onclick={() => showImportMenu = false} aria-label="close menu"></button>
+      {/if}
+      <div class="import-wrap">
+        <button class="log-btn" onclick={() => showImportMenu = !showImportMenu}>↑ import</button>
+        {#if showImportMenu}
+          <div class="import-menu">
+            <button onclick={() => { gpxInput?.click(); showImportMenu = false; }}>gpx</button>
+            <button onclick={() => { csvInput?.click(); showImportMenu = false; }}>activities</button>
+          </div>
+        {/if}
+      </div>
       <button class="log-btn" onclick={() => (showForm = !showForm)}>
         {showForm ? 'cancel' : '+ log'}
       </button>
     </div>
   </div>
+
+{#if importMsg}
+  <div class="import-msg">{importMsg}</div>
+{/if}
 
 {#if showForm}
   <div class="form-card">
@@ -671,6 +807,53 @@
   }
   .log-btn:hover { border-color: #555; }
   .example-btn.active { border-color: #ff6b35; color: #ff6b35; }
+  .import-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    background: none;
+    border: none;
+    cursor: default;
+  }
+  .import-wrap {
+    position: relative;
+  }
+  .import-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    background: #1a1a20;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 4px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    min-width: 110px;
+  }
+  .import-menu button {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 12px;
+    padding: 7px 12px;
+    cursor: pointer;
+    text-align: left;
+    border-radius: 4px;
+    font-family: inherit;
+    letter-spacing: 0.04em;
+  }
+  .import-menu button:hover { background: #222; color: #fff; }
+  .import-msg {
+    background: #131318;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    color: #aaa;
+    font-size: 12px;
+    padding: 8px 14px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
   /* ── Form ── */
   .form-card {
     background: #131318;
