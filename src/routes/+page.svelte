@@ -258,6 +258,7 @@
   let csvInput;
   let importMsg = $state('');
   let showImportMenu = $state(false);
+  let showThemeMenu = $state(false);
 
   function haversine(lat1, lon1, lat2, lon2) {
     const R = 6371000;
@@ -442,10 +443,25 @@
       <p class="subtitle">activity log</p>
     </div>
     <div class="header-controls">
-      <div class="theme-swatches">
-        {#each Object.entries(THEMES) as [key, t]}
-          <button class="theme-swatch" class:active={theme === key} style="--swatch:{t.run}" onclick={() => theme = key} title={key}></button>
-        {/each}
+      {#if showThemeMenu}
+        <button class="import-overlay" onclick={() => showThemeMenu = false} aria-label="close theme menu"></button>
+      {/if}
+      <div class="import-wrap">
+        <button class="log-btn" onclick={() => showThemeMenu = !showThemeMenu}>🎨</button>
+        {#if showThemeMenu}
+          <div class="import-menu">
+            {#each Object.entries(THEMES) as [key, t]}
+              <button
+                class="theme-option"
+                class:active={theme === key}
+                onclick={() => { theme = key; showThemeMenu = false; }}
+              >
+                <span class="theme-dot" style="--swatch:{t.run}"></span>
+                {key}
+              </button>
+            {/each}
+          </div>
+        {/if}
       </div>
       <div class="unit-toggle">
         <button class:active={unit === 'mi'} onclick={() => unit = 'mi'}>mi</button>
@@ -813,23 +829,32 @@
     margin-top: 6px;
   }
 
-  /* ── Theme swatches ── */
-  .theme-swatches {
+  /* ── Theme menu ── */
+  .theme-option {
     display: flex;
-    gap: 5px;
     align-items: center;
-  }
-  .theme-swatch {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid var(--swatch);
-    background: var(--swatch);
+    gap: 8px;
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 12px;
+    padding: 7px 12px;
     cursor: pointer;
-    padding: 0;
-    transition: background 0.15s;
+    text-align: left;
+    border-radius: 4px;
+    font-family: inherit;
+    letter-spacing: 0.04em;
+    width: 100%;
   }
-  .theme-swatch.active { background: transparent; }
+  .theme-option:hover { background: var(--b1); color: #fff; }
+  .theme-option.active { color: #fff; }
+  .theme-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--swatch);
+    flex-shrink: 0;
+  }
 
   .unit-toggle {
     display: flex;
