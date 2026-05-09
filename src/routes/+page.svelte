@@ -1173,6 +1173,10 @@
     font-size: 13px;
   }
   .run-row:last-child { border-bottom: none; }
+  @media (hover: hover) {
+    .run-row { transition: background 0.15s ease; border-radius: 6px; }
+    .run-row:hover { background: var(--hover); }
+  }
   .run-date, .run-type, .run-dist, .run-pace, .run-hr, .run-dur, .run-elev {
     color: var(--tx1);
     flex: 0 0 68px;
