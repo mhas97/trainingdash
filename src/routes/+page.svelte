@@ -728,7 +728,7 @@
                 }
               }}
               onblur={() => { if (pendingDelete === activity.id) pendingDelete = null; }}
-            >{pendingDelete === activity.id ? 'del?' : '×'}</button>
+            >{pendingDelete === activity.id ? 'del?' : '🗑'}</button>
           </div>
         {/each}
       </div>
@@ -1172,14 +1172,15 @@
     background: none;
     border: none;
     color: var(--b2);
-    font-size: 18px;
+    font-size: 14px;
     cursor: pointer;
     padding: 0 2px;
     line-height: 1;
     margin-left: auto;
+    opacity: 0.4;
   }
-  .del-btn:hover { color: #ff4f7b; }
-  .del-btn.del-armed { color: #ff4f7b; font-size: 12px; letter-spacing: 0.03em; }
+  .del-btn:hover { opacity: 1; filter: sepia(1) saturate(5) hue-rotate(300deg); }
+  .del-btn.del-armed { opacity: 1; filter: sepia(1) saturate(5) hue-rotate(300deg); font-size: 12px; letter-spacing: 0.03em; }
 
   /* ── Annual + PBs ── */
   .annual-header {
