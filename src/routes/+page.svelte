@@ -230,12 +230,62 @@
       return byDate !== 0 ? byDate : Number(b.id) - Number(a.id);
     });
     const filtered = filterType === 'all' ? sorted : sorted.filter(a => (a.type ?? 'run') === filterType);
-    return filtered.slice(0, 15);
+    return filtered;
   });
 
   function fmtDate(ds) {
     return new Date(ds + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
   }
+
+  // ── Annual totals ─────────────────────────────────────────
+  const currentYear = today.getFullYear();
+  let annualView = $state('run');
+
+  let yearTypedActivities = $derived(
+    activities.filter(a => a.date.startsWith(String(currentYear)) && (a.type ?? 'run') === annualView)
+  );
+  let yearDist = $derived(yearTypedActivities.reduce((s, a) => s + (a.distance || 0), 0));
+  let yearElev = $derived(yearTypedActivities.reduce((s, a) => s + (a.elevation || 0), 0));
+  let yearTotalSecs = $derived(yearTypedActivities.reduce((s, a) => s + parseSecs(a.duration), 0));
+  let yearLongest = $derived(yearTypedActivities.reduce((b, a) => Math.max(b, a.distance || 0), 0));
+
+  // ── All-time PBs ──────────────────────────────────────────
+  const KM_TO_MI = 1 / 1.60934;
+  const RUN_PB_TARGETS = [
+    { label: '5k',       mi: 5 * KM_TO_MI },
+    { label: '10k',      mi: 10 * KM_TO_MI },
+    { label: 'half',     mi: 21.0975 * KM_TO_MI },
+    { label: 'marathon', mi: 42.195 * KM_TO_MI },
+  ];
+  const CYCLE_PB_TARGETS = [
+    { label: '5k',   mi: 5 * KM_TO_MI },
+    { label: '10k',  mi: 10 * KM_TO_MI },
+    { label: '50k',  mi: 50 * KM_TO_MI },
+    { label: '100k', mi: 100 * KM_TO_MI },
+  ];
+
+  function bestEffortTime(type, targetMi) {
+    let bestSpu = Infinity;
+    for (const a of activities) {
+      if ((a.type ?? 'run') !== type || !a.distance || !a.duration) continue;
+      if (a.distance < targetMi) continue;
+      const spu = parseSecs(a.duration) / a.distance;
+      if (spu < bestSpu) bestSpu = spu;
+    }
+    if (bestSpu === Infinity) return null;
+    const totalSecs = Math.round(bestSpu * targetMi);
+    const h = Math.floor(totalSecs / 3600);
+    const m = Math.floor((totalSecs % 3600) / 60);
+    const s = totalSecs % 60;
+    return h > 0
+      ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+      : `${m}:${String(s).padStart(2, '0')}`;
+  }
+
+  let pbTimes = $derived.by(() => {
+    const targets = annualView === 'run' ? RUN_PB_TARGETS : CYCLE_PB_TARGETS;
+    return targets.map(t => ({ label: t.label, time: bestEffortTime(annualView, t.mi) }));
+  });
 </script>
 
 <div class="page">
@@ -314,22 +364,24 @@
 
   <!-- This week stats -->
   <div class="stats-row">
-    <div class="stat">
-      <div class="stat-value">{(weekMiles * kmFactor).toFixed(1)}</div>
-      <div class="stat-label">{unit} running</div>
-    </div>
-    <div class="divider"></div>
-    <div class="stat">
-      <div class="stat-value">{fmtTime(weekSecs)}</div>
-      <div class="stat-label">active time</div>
-    </div>
-    <div class="divider"></div>
-    <div class="stat">
-      <div class="stat-value">{thisWeekActivities.length}</div>
-      <div class="stat-label">workouts</div>
+    <div class="card-label" style="margin-bottom: 14px">this week</div>
+    <div class="stats-items">
+      <div class="stat">
+        <div class="stat-value">{(weekMiles * kmFactor).toFixed(1)}</div>
+        <div class="stat-label">{unit} running</div>
+      </div>
+      <div class="divider"></div>
+      <div class="stat">
+        <div class="stat-value">{fmtTime(weekSecs)}</div>
+        <div class="stat-label">active time</div>
+      </div>
+      <div class="divider"></div>
+      <div class="stat">
+        <div class="stat-value">{thisWeekActivities.length}</div>
+        <div class="stat-label">workouts</div>
+      </div>
     </div>
   </div>
-  <div class="section-label">this week</div>
 
   <!-- Weekly distance chart (runs) -->
   <div class="card">
@@ -388,6 +440,119 @@
     </div>
   </div>
 
+  <!-- Annual totals + PBs -->
+  <div class="card">
+    <div class="annual-header">
+      <span class="card-label" style="margin-bottom: 0">{currentYear} totals</span>
+      <div class="annual-toggle">
+        <button class:active={annualView === 'run'} style={annualView === 'run' ? `--tab-color: ${ACTIVITY_COLORS.run}` : ''} onclick={() => annualView = 'run'}>run</button>
+        <button class:active={annualView === 'cycle'} style={annualView === 'cycle' ? `--tab-color: ${ACTIVITY_COLORS.cycle}` : ''} onclick={() => annualView = 'cycle'}>cycle</button>
+      </div>
+    </div>
+    <div class="annual-grid">
+      <div class="annual-stat">
+        <div class="annual-val" style="color: {ACTIVITY_COLORS[annualView]}">{(yearDist * kmFactor).toFixed(0)}</div>
+        <div class="annual-lbl">{unit} {annualView === 'run' ? 'running' : 'cycling'}</div>
+      </div>
+      <div class="annual-stat">
+        <div class="annual-val">{yearLongest > 0 ? (yearLongest * kmFactor).toFixed(1) : '—'}</div>
+        <div class="annual-lbl">longest {annualView === 'run' ? 'run' : 'ride'} ({unit})</div>
+      </div>
+      <div class="annual-stat">
+        <div class="annual-val">↑{yearElev.toFixed(0)}</div>
+        <div class="annual-lbl">{unit === 'km' ? 'm' : 'ft'} elevation</div>
+      </div>
+      <div class="annual-stat">
+        <div class="annual-val">{fmtTime(yearTotalSecs)}</div>
+        <div class="annual-lbl">active time</div>
+      </div>
+      <div class="annual-stat">
+        <div class="annual-val">{yearTypedActivities.length}</div>
+        <div class="annual-lbl">workouts</div>
+      </div>
+    </div>
+    <div class="pb-row">
+      <span class="pb-label">all-time PBs</span>
+      {#each pbTimes as pb}
+        <span class="pb-item" class:pb-empty={!pb.time}>
+          <span class="pb-key">{pb.label}</span>{pb.time ?? '—'}
+        </span>
+      {/each}
+    </div>
+  </div>
+
+  <!-- Recent activity -->
+  {#if recentActivities.length > 0 || filterType !== 'all'}
+  <div class="card">
+    <div class="list-header">
+      <span class="card-label" style="margin-bottom: 0">recent activity</span>
+      <div class="filter-tabs">
+        <button class:active={filterType === 'all'} onclick={() => filterType = 'all'}>all</button>
+        {#each ['run', 'gym', 'cycle'] as t}
+          <button
+            class:active={filterType === t}
+            style={filterType === t ? `--tab-color: ${ACTIVITY_COLORS[t]}` : ''}
+            onclick={() => filterType = t}
+          >{t}</button>
+        {/each}
+      </div>
+    </div>
+    <div class="runs-list">
+      <div class="run-header">
+        <span class="run-date">date</span>
+        <span class="run-type">type</span>
+        <span class="run-dist">dist</span>
+        <span class="run-dur">time</span>
+        <span class="run-pace">vel</span>
+        <span class="run-hr">hr</span>
+        <span class="run-elev">elev</span>
+        <span class="run-notes">notes</span>
+      </div>
+      <div class="runs-scroll">
+        {#each recentActivities as activity}
+          {@const color = ACTIVITY_COLORS[activity.type ?? 'run']}
+          <div class="run-row">
+            <div class="run-date">{fmtDate(activity.date)}</div>
+            <div class="run-type" style="color: {color}">{activity.type ?? 'run'}</div>
+            <div class="run-dist">
+              {activity.distance != null ? `${(activity.distance * kmFactor).toFixed(1)} ${unit}` : '—'}
+            </div>
+            {#if activity.duration}<div class="run-dur">{activity.duration}</div>{/if}
+            <div class="run-pace">
+              {#if (activity.type ?? 'run') !== 'gym'}
+                {@const pace = calcPace(activity.distance, activity.duration, kmFactor)}
+                {pace ? `${pace}/${unit}` : '—'}
+              {:else}
+                —
+              {/if}
+            </div>
+            <div class="run-hr">
+              {activity.heartrate ? `${activity.heartrate} bpm` : '—'}
+            </div>
+            <div class="run-elev">
+              {activity.elevation != null ? `↑${activity.elevation}${unit === 'km' ? 'm' : 'ft'}` : '—'}
+            </div>
+            <div class="run-notes">{activity.notes || '—'}</div>
+            <button
+              class="del-btn"
+              class:del-armed={pendingDelete === activity.id}
+              onclick={() => {
+                if (pendingDelete === activity.id) {
+                  deleteActivity(activity.id);
+                  pendingDelete = null;
+                } else {
+                  pendingDelete = activity.id;
+                }
+              }}
+              onblur={() => { if (pendingDelete === activity.id) pendingDelete = null; }}
+            >{pendingDelete === activity.id ? 'del?' : '×'}</button>
+          </div>
+        {/each}
+      </div>
+    </div>
+  </div>
+  {/if}
+
   <!-- Calendar -->
   <div class="card">
     <div class="cal-nav">
@@ -439,76 +604,6 @@
       {/each}
     </div>
   </div>
-
-  <!-- Recent activity -->
-  {#if recentActivities.length > 0 || filterType !== 'all'}
-  <div class="card">
-    <div class="list-header">
-      <span class="card-label" style="margin-bottom: 0">recent activity</span>
-      <div class="filter-tabs">
-        <button class:active={filterType === 'all'} onclick={() => filterType = 'all'}>all</button>
-        {#each ['run', 'gym', 'cycle'] as t}
-          <button
-            class:active={filterType === t}
-            style={filterType === t ? `--tab-color: ${ACTIVITY_COLORS[t]}` : ''}
-            onclick={() => filterType = t}
-          >{t}</button>
-        {/each}
-      </div>
-    </div>
-    <div class="runs-list">
-      <div class="run-header">
-        <span class="run-date">date</span>
-        <span class="run-type">type</span>
-        <span class="run-dist">dist</span>
-        <span class="run-dur">time</span>
-        <span class="run-pace">vel</span>
-        <span class="run-hr">hr</span>
-        <span class="run-elev">elev</span>
-        <span class="run-notes">notes</span>
-      </div>
-      {#each recentActivities as activity}
-        {@const color = ACTIVITY_COLORS[activity.type ?? 'run']}
-        <div class="run-row">
-          <div class="run-date">{fmtDate(activity.date)}</div>
-          <div class="run-type" style="color: {color}">{activity.type ?? 'run'}</div>
-          <div class="run-dist">
-            {activity.distance != null ? `${(activity.distance * kmFactor).toFixed(1)} ${unit}` : '—'}
-          </div>
-          {#if activity.duration}<div class="run-dur">{activity.duration}</div>{/if}
-          <div class="run-pace">
-            {#if (activity.type ?? 'run') !== 'gym'}
-              {@const pace = calcPace(activity.distance, activity.duration, kmFactor)}
-              {pace ? `${pace}/${unit}` : '—'}
-            {:else}
-              —
-            {/if}
-          </div>
-          <div class="run-hr">
-            {activity.heartrate ? `${activity.heartrate} bpm` : '—'}
-          </div>
-          <div class="run-elev">
-            {activity.elevation != null ? `↑${activity.elevation}${unit === 'km' ? 'm' : 'ft'}` : '—'}
-          </div>
-          <div class="run-notes">{activity.notes || '—'}</div>
-          <button
-            class="del-btn"
-            class:del-armed={pendingDelete === activity.id}
-            onclick={() => {
-              if (pendingDelete === activity.id) {
-                deleteActivity(activity.id);
-                pendingDelete = null;
-              } else {
-                pendingDelete = activity.id;
-              }
-            }}
-            onblur={() => { if (pendingDelete === activity.id) pendingDelete = null; }}
-          >{pendingDelete === activity.id ? 'del?' : '×'}</button>
-        </div>
-      {/each}
-    </div>
-  </div>
-  {/if}
 </div>
 
 <style>
@@ -650,11 +745,15 @@
   /* ── Stats ── */
   .stats-row {
     display: flex;
+    flex-direction: column;
     background: #131318;
     border: 1px solid #222;
     border-radius: 12px;
     padding: 1.1rem 1.25rem;
-    margin-bottom: 6px;
+    margin-bottom: 12px;
+  }
+  .stats-items {
+    display: flex;
   }
   .stat {
     flex: 1;
@@ -678,15 +777,6 @@
     background: #444;
     margin: 0 4px;
   }
-  .section-label {
-    font-size: 11px;
-    color: #777;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 1.25rem;
-    padding-left: 2px;
-  }
-
   /* ── Card ── */
   .card {
     background: #131318;
@@ -856,6 +946,12 @@
     display: flex;
     flex-direction: column;
   }
+  .runs-scroll {
+    max-height: 280px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a2a transparent;
+  }
   .run-header {
     display: flex;
     align-items: center;
@@ -902,6 +998,85 @@
   }
   .del-btn:hover { color: #ff4f7b; }
   .del-btn.del-armed { color: #ff4f7b; font-size: 12px; letter-spacing: 0.03em; }
+
+  /* ── Annual + PBs ── */
+  .annual-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .annual-toggle {
+    display: flex;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .annual-toggle button {
+    background: none;
+    border: none;
+    color: #555;
+    font-size: 11px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.04em;
+  }
+  .annual-toggle button.active {
+    background: #1e1e24;
+    color: var(--tab-color, #fff);
+  }
+  .annual-grid {
+    display: flex;
+    margin-bottom: 14px;
+  }
+  .annual-stat {
+    flex: 1;
+    text-align: center;
+    border-right: 1px solid #222;
+    padding: 0 6px;
+  }
+  .annual-stat:first-child { padding-left: 0; }
+  .annual-stat:last-child { border-right: none; padding-right: 0; }
+  .annual-val {
+    font-size: 22px;
+    font-weight: 500;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .annual-lbl {
+    font-size: 10px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .pb-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-top: 1px solid #1c1c1c;
+    padding-top: 12px;
+    flex-wrap: wrap;
+  }
+  .pb-label {
+    font-size: 10px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .pb-item {
+    font-size: 12px;
+    color: #bbb;
+  }
+  .pb-key {
+    font-size: 10px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-right: 5px;
+  }
+  .pb-empty { color: #444; }
 
   @media (max-width: 600px) {
     .page { padding: 1rem; }
