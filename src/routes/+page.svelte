@@ -404,7 +404,7 @@
     if (touchMode === 'pan') {
       const weeksPer = chartWidth / CHART_WEEKS;
       chartOffset = Math.max(0, Math.min(MAX_CHART_OFFSET, Math.round(touchPanStart.offset - dx / weeksPer)));
-      hoveredIdx = null;
+      pickClosest(e.touches[0].clientX, e.currentTarget.getBoundingClientRect());
     } else if (touchMode === 'scrub') {
       pickClosest(e.touches[0].clientX, e.currentTarget.getBoundingClientRect());
     }
