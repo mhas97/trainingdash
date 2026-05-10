@@ -392,6 +392,7 @@
   function handleTouchStart(e) {
     touchPanStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, offset: chartOffset };
     touchMode = null;
+    pickClosest(e.touches[0].clientX, e.currentTarget.getBoundingClientRect());
   }
   function handleTouchMove(e) {
     e.preventDefault();
