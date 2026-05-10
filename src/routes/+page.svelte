@@ -5,9 +5,9 @@
     light:  { bg: '#f5f5f3', card: '#ffffff', card2: '#ebebea', hover: '#e2e2e0', rb: '#d8d8d6', b1: '#d8d8d6', b2: '#c8c8c6', b3: '#b0b0ae', track: '#a0a0a0', run: '#e05a1a', gym: '#8833cc', cycle: '#0088aa', tx0: '#111111', tx1: '#555555', tx2: '#999999' },
     dark:   { bg: '#0d0d0f', card: '#131318', card2: '#1a1a20', hover: '#1e1e24', rb: '#1c1c1c', b1: '#222',    b2: '#2a2a2a', b3: '#333',    track: '#444',    run: '#ff6b35', gym: '#b44fff', cycle: '#00e5ff', tx0: '#ffffff', tx1: '#aaaaaa', tx2: '#666666' },
     slate:  { bg: '#0b0c14', card: '#111420', card2: '#181b2e', hover: '#1e2138', rb: '#1a1d30', b1: '#1e2035', b2: '#252840', b3: '#2d3055', track: '#3a3d5c', run: '#6366f1', gym: '#f472b6', cycle: '#34d399', tx0: '#ffffff', tx1: '#aaaaaa', tx2: '#666666' },
-    matrix: { bg: '#020d04', card: '#050f06', card2: '#081509', hover: '#0c1e0e', rb: '#0a1a0c', b1: '#0d2410', b2: '#102e13', b3: '#163d1a', track: '#1a5c1f', run: '#00ff41', gym: '#00cc33', cycle: '#00ff99', tx0: '#00ff41', tx1: '#00cc33', tx2: '#1a5c1f' },
     amber:  { bg: '#0f0d0a', card: '#171410', card2: '#1e1a14', hover: '#23201a', rb: '#201e18', b1: '#2a2218', b2: '#322a1e', b3: '#3d3226', track: '#4a4030', run: '#f59e0b', gym: '#f87171', cycle: '#a78bfa', tx0: '#ffffff', tx1: '#aaaaaa', tx2: '#666666' },
     mono:   { bg: '#0a0a0a', card: '#111111', card2: '#181818', hover: '#1e1e1e', rb: '#1a1a1a', b1: '#222222', b2: '#2a2a2a', b3: '#333333', track: '#444444', run: '#e5e5e5', gym: '#888888', cycle: '#cccccc', tx0: '#ffffff', tx1: '#aaaaaa', tx2: '#666666' },
+    matrix: { bg: '#020d04', card: '#050f06', card2: '#081509', hover: '#0c1e0e', rb: '#0a1a0c', b1: '#0d2410', b2: '#102e13', b3: '#163d1a', track: '#1a5c1f', run: '#00ff41', gym: '#00cc33', cycle: '#00ff99', tx0: '#00ff41', tx1: '#00cc33', tx2: '#1a5c1f' },
     vapor:  { bg: '#0d0021', card: '#1a0040', card2: '#220055', hover: '#2e0070', rb: '#2a005a', b1: '#2e005e', b2: '#380072', b3: '#450088', track: '#7700bb', run: '#ff2d78', gym: '#00f5ff', cycle: '#ffe600', tx0: '#ffffff', tx1: '#dd99ff', tx2: '#7744aa' },
   };
 
@@ -246,8 +246,8 @@
   let typePicked = $state(false);
   const TYPE_CYCLE = ['run', 'cycle', 'gym'];
   function cycleType() { typeFilter = TYPE_CYCLE[(TYPE_CYCLE.indexOf(typeFilter) + 1) % TYPE_CYCLE.length]; typePicked = true; }
-  let typeColor = $derived(typeFilter === 'cycle' ? T.cycle : typeFilter === 'gym' ? T.gym : typeFilter === 'all' ? T.tx1 : T.run);
-  let typeEmoji = $derived({ run: '👟', cycle: '🚴', gym: '🏋️', all: '∞' }[typeFilter]);
+  let typeColor = $derived(typeFilter === 'cycle' ? T.cycle : typeFilter === 'gym' ? T.gym : T.run);
+  let typeEmoji = $derived({ run: '👟', cycle: '🚴', gym: '🏋️' }[typeFilter]);
   let weekMiles = $derived(
     +thisWeekActivities
       .filter(a => (a.type ?? 'run') === (typeFilter === 'cycle' ? 'cycle' : 'run'))
@@ -683,16 +683,16 @@
 <div class="page" class:matrix-active={theme === 'matrix'} class:vapor-active={theme === 'vapor'} style={themeStyle}>
   <div class="header">
     <div>
-      <h1>{#key typeFilter}<span class="title-sport type-anim-{typeFilter}" style="--glow: {typeColor}"><span style="color: {typeColor}">{typeFilter}</span>.dash</span>{/key}</h1>
+      <h1>{#key typeFilter}<span class="title-sport type-anim-run" style="--glow: {typeColor}"><span style="color: {typeColor}">{typeFilter}</span>.dash</span>{/key}</h1>
       <p class="subtitle">activity log</p>
     </div>
     <div class="header-controls">
       <div class="type-filter">
         {#if !typePicked}
-          <button class="log-btn type-btn type-btn-shine" style="border-color: {typeColor}; color: inherit; --glow: {typeColor}" onclick={cycleType} aria-label="cycle activity type">{typeEmoji}</button>
+          <button class="log-btn type-btn type-btn-shine" style="border-color: {typeColor}; --glow: {typeColor}" onclick={cycleType} aria-label="cycle activity type">{typeEmoji}</button>
         {:else}
           {#key typeFilter}
-            <button class="log-btn type-btn type-anim-{typeFilter}" style="border-color: {typeColor}; color: {typeFilter === 'all' ? typeColor : 'inherit'}; --glow: {typeColor}" onclick={cycleType} aria-label="cycle activity type">{typeEmoji}</button>
+            <button class="log-btn type-btn type-anim-run" style="border-color: {typeColor}; --glow: {typeColor}" onclick={cycleType} aria-label="cycle activity type">{typeEmoji}</button>
           {/key}
         {/if}
       </div>
@@ -874,13 +874,15 @@
           stroke-opacity="0.5"
           stroke-linejoin="round"
         />
-        <polyline
-          points={polylinePoints}
-          fill="none"
-          stroke="url(#chartShine)"
-          stroke-width="2"
-          stroke-linejoin="round"
-        />
+        {#if theme === 'matrix'}
+          <polyline
+            points={polylinePoints}
+            fill="none"
+            stroke="url(#chartShine)"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+        {/if}
         {#if hoveredIdx !== null}
           <line
             x1={chartPoints[hoveredIdx].x} y1={PAD_Y}
@@ -1463,26 +1465,7 @@
     65%  { transform: translateX(4px);   opacity: 1; box-shadow: 0 0 14px 4px var(--glow); }
     100% { transform: translateX(0);     opacity: 0.6; box-shadow: none; }
   }
-  @keyframes anim-cycle {
-    0%   { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  @keyframes anim-gym {
-    0%   { transform: translateY(0); }
-    25%  { transform: translateY(-10px); }
-    50%  { transform: translateY(0); }
-    70%  { transform: translateY(-5px); }
-    100% { transform: translateY(0); }
-  }
-  @keyframes anim-all {
-    0%   { transform: scale(0.3); opacity: 0; }
-    65%  { transform: scale(1.18); opacity: 0.9; }
-    100% { transform: scale(1);   opacity: 0.6; }
-  }
-  .type-anim-run   { animation: anim-run   0.45s ease-out; }
-  .type-anim-cycle { animation: anim-cycle 0.5s ease-in-out; }
-  .type-anim-gym   { animation: anim-gym   0.55s ease-in-out; }
-  .type-anim-all   { animation: anim-all   0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  .type-anim-run { animation: anim-run 0.45s ease-out; }
   .theme-wrap { margin-left: auto; }
   .runs-list { display: flex; flex-direction: column; }
   .runs-inner { display: flex; flex-direction: column; }
