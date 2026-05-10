@@ -950,7 +950,6 @@
     </div>
     {#if typeFilter !== 'gym'}
     <div class="pb-row">
-      <span class="pb-label">all-time PBs</span>
       {#each pbTimes as pb}
         <span class="pb-item" class:pb-empty={!pb.time}>
           <span class="pb-key">{pb.label}</span>{pb.time ?? '—'}{#if pb.isEstimate}<button
