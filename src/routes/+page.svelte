@@ -625,6 +625,7 @@
   // ── All-time PBs ──────────────────────────────────────────
   const KM_TO_MI = 1 / 1.60934;
   const RUN_PB_TARGETS = [
+    { label: '1mi',      mi: 1 },
     { label: '5k',       mi: 5 * KM_TO_MI },
     { label: '10k',      mi: 10 * KM_TO_MI },
     { label: 'half',     mi: 21.0975 * KM_TO_MI },
